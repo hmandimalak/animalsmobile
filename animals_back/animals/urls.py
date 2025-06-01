@@ -1,6 +1,6 @@
 # animals/urls.py
 from django.urls import path
-from .views import AnimalDetailedView, AnimalListCreateView, AnimalDetailView, DemandeEvenementMarcheCreateView, DemandeGardeListCreateView,AnimalAdminDefinitiveListView,AnimalDetailView,DemandeAdoptionAPIView, EvenementMarcheChienDetailsView, EvenementMarcheChienUserListView,NotificationView,NotificationMarkReadView, UserAcceptedAdoptionAnimalsView, UserAcceptedDefinitiveAnimalsView, UserAcceptedTemporaryAnimalsView, UserDemandesEvenementMarcheView,search_animals,get_animal_by_id
+from .views import AdoptedCountView, AnimalDetailedView, AnimalListCreateView, AnimalDetailView, DemandeEvenementMarcheCreateView, DemandeGardeListCreateView,AnimalAdminDefinitiveListView,AnimalDetailView,DemandeAdoptionAPIView, EvenementMarcheChienDetailsView, EvenementMarcheChienUserListView,NotificationView,NotificationMarkReadView, UserAcceptedAdoptionAnimalsView, UserAcceptedDefinitiveAnimalsView, UserAcceptedTemporaryAnimalsView, UserDemandesEvenementMarcheView,search_animals,get_animal_by_id
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -36,6 +36,9 @@ urlpatterns = [
     path('user/demandes/marche-chiens/', UserDemandesEvenementMarcheView.as_view(), name='user-demandes-marche'),
   
     path('dog/detail/<int:pk>/', AnimalDetailedView.as_view(), name='animal-detail-view'),
+
+    path('adopted-count/', AdoptedCountView.as_view(), name='adopted-count'
+    ),
 ]
 
 

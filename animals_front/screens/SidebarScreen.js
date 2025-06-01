@@ -1,271 +1,273 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  SafeAreaView,
+import React, { useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  Animated,
+  StyleSheet,
+  Dimensions
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-// TODO: Install AsyncStorage with: npm install @react-native-async-storage/async-storage
-// For now, use a temporary mock for AsyncStorage
-const AsyncStorage = {
-  getItem: async (key) => null,
-  setItem: async (key, value) => {},
-  removeItem: async (key) => {}
+
+// Updated theme colors to match web application
+const COLORS = {
+  primary: '#6A89A7',    // Soft blue (main color)
+  secondary: '#BDDDFC',   // Light sky blue
+  accent: '#88BDF2',      // Sky blue
+  dark: '#384959',        // Dark blue-gray
+  white: '#FFFFFF',
+  gray: '#F0F0F0',
+  darkGray: '#718096',    // Lighter blue-gray
+  lightGray: '#e6e6e6',
+  danger: '#ff6b6b',
 };
 
-const authenticatedFetch = async (url, options = {}) => {
-  try {
-    const token = await AsyncStorage.getItem('access_token');
-    if (token) {
-      options.headers = {
-        ...options.headers,
-        Authorization: `Bearer ${token}`
-      };
-    }
-    return fetch(url, options);
-  } catch (error) {
-    console.error('Auth fetch error:', error);
-    throw error;
-  }
-};
+const { width } = Dimensions.get('window');
+const SIDEBAR_WIDTH = width * 0.75;
 
-export default function Sidebar({ onClose }) {
-  const [user, setUser] = useState(null);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [notifCount, setNotifCount] = useState(0);
-  const [isNavigating, setIsNavigating] = useState(false);
+export default function Sidebar({ isVisible, onClose }) {
   const navigation = useNavigation();
-
-  const colors = {
-    primary: '#6A89A7',
-    secondary: '#BDDDFC',
-    accent: '#88BDF2',
-    dark: '#384959',
-  };
+  // Animation value for sliding effect
+  const slideAnim = React.useRef(new Animated.Value(isVisible ? 0 : -SIDEBAR_WIDTH)).current;
 
   useEffect(() => {
-    const fetchData = async () => {
-      const token = await AsyncStorage.getItem('access_token');
-      if (!token) return;
+    Animated.timing(slideAnim, {
+      toValue: isVisible ? 0 : -SIDEBAR_WIDTH,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isVisible]);
 
-      try {
-        // Fetch user profile and notifications in parallel
-        const [profileResponse, animalResponse, boutiqueResponse] = await Promise.all([
-          authenticatedFetch("http://127.0.0.1:8000/api/auth/profile/"),
-          authenticatedFetch("http://127.0.0.1:8000/api/animals/notifications/"),
-          authenticatedFetch("http://127.0.0.1:8000/api/boutique/notifications/")
-        ]);
+  const navigateTo = (screen) => {
+    onClose();
+    navigation.navigate(screen);
+  };
 
-        // Handle profile response
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          setUser(profileData);
-        }
+ if (!isVisible) return null;
 
-        // Process notifications
-        const processNotifications = async (response, type) => {
-          if (!response.ok) return [];
-          const data = await response.json();
-          return Array.isArray(data) ? data.map(n => ({ ...n, type })) : [];
-        };
-
-        const [animalNotifications, boutiqueNotifications] = await Promise.all([
-          processNotifications(animalResponse, 'animals'),
-          processNotifications(boutiqueResponse, 'boutique')
-        ]);
-
-        const allNotifications = [...animalNotifications, ...boutiqueNotifications];
-        setNotifications(allNotifications);
-        setNotifCount(allNotifications.filter(n => !n.lu).length);
-
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      // Clear all authentication tokens
-      await AsyncStorage.removeItem('access_token');
-      await AsyncStorage.removeItem('refresh_token');
+  return (
+    <View style={styles.container}>
+      {/* Dark overlay */}
+      <TouchableOpacity 
+        activeOpacity={1}
+        onPress={onClose}
+        style={styles.overlay}
+      />
       
-      // Navigate to login screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      navigation.navigate('Login');
-    }
-  };
-
-  const handleNotifClick = async (notifId, notificationType) => {
-    try {
-      const endpoint = `http://127.0.0.1:8000/api/${notificationType}/notifications/${notifId}/read/`;
-      await authenticatedFetch(endpoint, { method: "PUT" });
-
-      setNotifications(prev => 
-        prev.map(notif => 
-          notif.id === notifId ? { ...notif, lu: true } : notif
-        )
-      );
-      setNotifCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Notification update failed:", error);
-    }
-  };
-
-  const isAuthenticated = () => !!user;
-  const getCurrentUser = () => user?.nom || "Guest";
-
-  const navigationItems = [
-    { label: "Accueil", iconName: "home-outline", route: "Home" },
-    { label: "Nos Animaux", iconName: "paw-outline", route: "Animals" },
-    { label: "Service de Garde", iconName: "calendar-outline", route: "Daycare" },
-    { label: "Boutique", iconName: "cart-outline", route: "Shop" },
-    { label: "Evenements", iconName: "calendar-outline", route: "Events" },
-    { label: "Blog", iconName: "newspaper-outline", route: "Blog" },
-    { label: "FAQ", iconName: "help-circle-outline", route: "FAQ" },
-  ];
-
-  const renderNotifications = () => {
-    if (!isNotificationOpen) return null;
-
-    return (
-      <SafeAreaView className="flex-1">
-        <View style={{ flex: 1, padding: 20, backgroundColor: '#fff' }}>
-      <TouchableOpacity onPress={onClose} style={{ marginBottom: 20 }}>
-        <Text style={{ color: 'blue' }}>Close Sidebar</Text>
-      </TouchableOpacity>
-      <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Sidebar Menu</Text>
-        <View className={`w-64 h-full bg-[${colors.secondary}] border-r border-[${colors.primary}]`}>
-          {/* Logo Section */}
-          <View className="py-5 border-b border-[${colors.primary}] items-center">
-            <Image 
-              source={require('../assets/adoption.jpg')} 
-              className="w-32 h-16 rounded-xl border-2 border-[${colors.primary}]"
-            />
-          </View>
-  
-          {/* Navigation Items */}
-          <ScrollView className="flex-1">
-            {navigationItems.map((item) => (
-              <TouchableOpacity
-                key={item.route}
-                className="flex-row items-center py-3 px-5 border-b border-[${colors.accent}] active:bg-[${colors.accent}]/20"
-                onPress={() => navigation.navigate(item.route)}
-              >
-                <Ionicons 
-                  name={item.iconName} 
-                  size={24} 
-                  color={colors.dark} 
-                  className="mr-4"
-                />
-                <Text className={`text-[${colors.dark}] text-base font-medium`}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-  
-          {/* User Section */}
-          <View className="p-4 border-t border-[${colors.primary}]">
-            {isAuthenticated() ? (
-              <>
-                <View className="flex-row items-center justify-end mb-3">
-                  <TouchableOpacity 
-                    className="relative p-2"
-                    onPress={() => setIsNotificationOpen(!isNotificationOpen)}
-                  >
-                    <Ionicons 
-                      name="notifications-outline" 
-                      size={24} 
-                      color={colors.dark} 
-                    />
-                    {notifCount > 0 && (
-                      <View className="absolute -top-1 -right-1 bg-[${colors.accent}] w-5 h-5 rounded-full items-center justify-center">
-                        <Text className="text-white text-xs font-bold">
-                          {notifCount}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                </View>
-  
-                <TouchableOpacity 
-                  className="flex-row items-center p-2 bg-[${colors.accent}]/20 rounded-full mb-3"
-                  onPress={() => navigation.navigate('Profile')}
-                >
-                  <View className={`w-8 h-8 rounded-full bg-[${colors.primary}] items-center justify-center`}>
-                    <Ionicons name="person" size={20} color="white" />
-                  </View>
-                  <Text className={`ml-3 text-[${colors.dark}] font-medium`}>
-                    {getCurrentUser()}
-                  </Text>
-                </TouchableOpacity>
-  
-                <TouchableOpacity 
-                  className="flex-row items-center justify-center p-3 bg-[${colors.primary}]/10 rounded-full"
-                  onPress={handleLogout}
-                >
-                  <Ionicons 
-                    name="log-out-outline" 
-                    size={20} 
-                    color={colors.dark} 
-                  />
-                  <Text className={`ml-2 text-[${colors.dark}] font-medium`}>
-                    Déconnexion
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity 
-                className="flex-row items-center justify-center p-3 bg-[${colors.primary}] rounded-full"
-                onPress={() => navigation.navigate('Login')}
-              >
-                <Ionicons name="log-in-outline" size={20} color="white" />
-                <Text className="ml-2 text-white font-medium">Connexion</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-  
-          {/* Notification Panel */}
-          {isNotificationOpen && (
-            <View className={`absolute right-0 bottom-20 w-64 bg-[${colors.secondary}] border border-[${colors.primary}] rounded-lg shadow-lg`}>
-              <Text className={`p-3 text-[${colors.dark}] font-semibold border-b border-[${colors.primary}]`}>
-                Notifications
-              </Text>
-              <ScrollView className="max-h-64">
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <TouchableOpacity
-                      key={`${notif.type}-${notif.id}`}
-                      className={`p-3 border-b border-[${colors.accent}] ${notif.lu ? 'bg-[#ffffff]' : 'bg-[${colors.accent}]/20'}`}
-                      onPress={() => handleNotifClick(notif.id, notif.type)}
-                    >
-                      <Text className={`${notif.lu ? 'text-gray-500 line-through' : `text-[${colors.dark}]`}`}>
-                        {notif.message}
-                      </Text>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <Text className="p-4 text-gray-500 text-center">
-                    Aucune notification
-                  </Text>
-                )}
-              </ScrollView>
+      {/* Sidebar container */}
+      <Animated.View 
+        style={[
+          styles.sidebar,
+          { transform: [{ translateX: slideAnim }] }
+        ]}
+      >
+        {/* Header section */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons name="paw" size={32} color={COLORS.white} />
             </View>
-          )}
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>Adopti</Text>
+              <Text style={styles.subtitleText}>Adoption d'animaux</Text>
+            </View>
+          </View>
         </View>
+        
+        {/* Navigation items */}
+        <View style={styles.menu}>
+          <TouchableOpacity 
+            style={[styles.menuItem, styles.activeItem]}
+            onPress={() => navigateTo('Home')}
+          >
+            <Ionicons name="home-outline" size={24} color={COLORS.dark} />
+            <Text style={[styles.menuItemText, styles.activeItemText]}>Accueil</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Profile')}
+          >
+            <Ionicons name="person-outline" size={24} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Mon Profil</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Nosanimaux')}
+          >
+            <MaterialCommunityIcons name="dog" size={24} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Nos Animaux</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Garde')}
+          >
+            <FontAwesome5 name="calendar-alt" size={22} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Service de garde</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Boutique')}
+          >
+            <Ionicons name="cart-outline" size={24} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Boutique</Text>
+          </TouchableOpacity>
+           <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Marche')}
+          >
+             <FontAwesome5 name="dog"  size={24} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Événement des marches des chiens</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('Blog')}
+          >
+            <Ionicons name="newspaper-outline"  size={24} color={COLORS.dark} />
+            <Text style={styles.menuItemText}>Blog</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
-  )}};
+        
+        {/* Footer with contact/help */}
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.footerItem}
+            onPress={() => navigateTo('FAQ')}
+          >
+            <Ionicons name="help-circle-outline" size={24} color={COLORS.dark} />
+            <Text style={styles.footerItemText}>FAQ</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.footerItem, styles.logoutItem]}
+            onPress={() => navigateTo('Logout')}
+          >
+            <Ionicons name="log-out-outline" size={24} color={COLORS.danger} />
+            <Text style={styles.logoutText}>Déconnexion</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sidebar: {
+    width: SIDEBAR_WIDTH,
+    height: '100%',
+    backgroundColor: COLORS.white,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 2,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  header: {
+    backgroundColor: COLORS.primary, // Blue header
+    paddingTop: 50,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.accent, // Light blue accent
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleContainer: {
+    marginLeft: 16,
+  },
+  titleText: {
+    color: COLORS.white,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitleText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+  },
+  menu: {
+    flex: 1,
+    paddingVertical: 16,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: 'transparent',
+  },
+  activeItem: {
+    borderLeftColor: COLORS.accent, // Light blue accent
+    backgroundColor: COLORS.secondary, // Very light blue
+  },
+  menuItemText: {
+    marginLeft: 16,
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.dark, // Dark blue-gray text
+  },
+  activeItemText: {
+    color: COLORS.primary, // Soft blue
+    fontWeight: 'bold',
+  },
+  footer: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  footerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  footerItemText: {
+    marginLeft: 16,
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.dark, // Dark blue-gray text
+  },
+  logoutItem: {
+    marginTop: 8,
+  },
+  logoutText: {
+    marginLeft: 16,
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.danger,
+  },
+});

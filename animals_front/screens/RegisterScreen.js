@@ -5,8 +5,13 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PhoneInput from 'react-native-phone-number-input';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const RegisterScreen = () => {
+// …
+
+
+
+export default function RegisterScreen  () {
   const navigation = useNavigation();
   const phoneInput = useRef(null);
   const [formData, setFormData] = useState({
@@ -20,6 +25,16 @@ const RegisterScreen = () => {
     profilepicture: null,
     role: 'Proprietaire', // Default role as required by your Django model
   });
+   const colors = {
+  primary: '#4DB6AC',  // Teal color from the image
+  background: '#F8F9FA',
+  white: '#FFFFFF',
+  text: '#333333',
+  lightGray: '#EAEAEA',
+  mediumGray: '#9E9E9E',
+  red: '#FF5252',
+};
+  
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -179,70 +194,91 @@ const RegisterScreen = () => {
   };
 
   return (
-    <LinearGradient colors={['#87CEEB', '#FFFFFF']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.formCard}>
-          <Text style={styles.title}>Rejoignez Notre Communauté</Text>
-
-          {/* Profile Image Upload */}
-          <View style={styles.imageUploadContainer}>
-            <TouchableOpacity style={styles.imageUpload} onPress={pickImage}>
-              {formData.profilepicture ? (
-                <Image source={{ uri: formData.profilepicture.uri }} style={styles.profileImage} />
-              ) : (
-                <>
-                  <Icon name="image" size={30} color="#2A9D8F" />
-                  <Text style={styles.uploadText}>Galerie</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.imageUpload} onPress={takePhoto}>
-              <Icon name="camera" size={30} color="#2A9D8F" />
-              <Text style={styles.uploadText}>Prendre photo</Text>
-            </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Background decorative elements */}
+      <View style={styles.decorativeCircle1} />
+      <View style={styles.decorativeCircle2} />
+      <View style={styles.decorativeCircle3} />
+      <View style={styles.decorativeCircle4} />
+      <View style={styles.decorativeCircle5} />
+      <View style={styles.decorativeCircle6} />
+      
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <Text style={styles.welcomeText}>Bienvenu a</Text>
+          <Text style={styles.appName}>Adopti</Text>
+          
+          {/* Cute pet image */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('../assets/animals.jpg')}
+              style={styles.petImage}
+              resizeMode="cover"
+            />
           </View>
+        </View>
 
+        {/* Registration Card */}
+        <View style={styles.formCard}>
+          <Text style={styles.title}>Creer un compte</Text>
+          <Text style={styles.subtitle}>rejoigner notre famille🐾</Text>
+
+     
           {/* Name Inputs */}
+           <Text style={styles.inputLabel}>Nom complet</Text>
           <View style={styles.inputRow}>
             <View style={[styles.inputContainer, styles.halfInput, errors.nom && styles.errorInput]}>
-              <Icon name="user" size={20} color="#2A9D8F" style={styles.icon} />
+              
+              <Text style={styles.inputEmoji}>👤</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Nom"
+                placeholder=" Nom"
+                placeholderTextColor="#8B5A3C"
                 value={formData.nom}
                 onChangeText={(text) => handleChange('nom', text)}
               />
             </View>
+            
             <View style={[styles.inputContainer, styles.halfInput, errors.prenom && styles.errorInput]}>
-              <Icon name="user" size={20} color="#2A9D8F" style={styles.icon} />
+               
+              <Text style={styles.inputEmoji}>👤</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Prénom"
+                placeholder="Prenom"
+                placeholderTextColor="#8B5A3C"
                 value={formData.prenom}
                 onChangeText={(text) => handleChange('prenom', text)}
               />
             </View>
           </View>
-          {errors.nom && <Text style={styles.errorText}>{errors.nom}</Text>}
-          {errors.prenom && <Text style={styles.errorText}>{errors.prenom}</Text>}
+          {errors.nom && <Text style={styles.errorText}>❌ {errors.nom}</Text>}
+          {errors.prenom && <Text style={styles.errorText}>❌ {errors.prenom}</Text>}
 
           {/* Email Input */}
+          <Text style={styles.inputLabel}>Email</Text>
           <View style={[styles.inputContainer, errors.email && styles.errorInput]}>
-            <Icon name="envelope" size={20} color="#2A9D8F" style={styles.icon} />
+            <Text style={styles.inputEmoji}>📧</Text>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="salut@gmail.com"
+              placeholderTextColor="#8B5A3C"
               keyboardType="email-address"
               autoCapitalize="none"
               value={formData.email}
               onChangeText={(text) => handleChange('email', text)}
             />
           </View>
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          {errors.email && <Text style={styles.errorText}>❌ {errors.email}</Text>}
 
           {/* Phone Input */}
+           <Text style={styles.inputLabel}>Téléphone</Text>
           <View style={[styles.phoneContainer, errors.telephone && styles.errorInput]}>
+            
+            <Text style={styles.phoneEmoji}>📱</Text>
             <PhoneInput
               ref={phoneInput}
               defaultValue={formData.telephone}
@@ -256,233 +292,411 @@ const RegisterScreen = () => {
               codeTextStyle={styles.codeText}
             />
           </View>
-          {errors.telephone && <Text style={styles.errorText}>{errors.telephone}</Text>}
+          {errors.telephone && <Text style={styles.errorText}>❌ {errors.telephone}</Text>}
 
           {/* Address Input */}
+          <Text style={styles.inputLabel}>Addresse</Text>
           <View style={[styles.inputContainer, errors.adresse && styles.errorInput]}>
-            <Icon name="home" size={20} color="#2A9D8F" style={styles.icon} />
+             
+            <Text style={styles.inputEmoji}>🏠</Text>
             <TextInput
               style={styles.input}
-              placeholder="Adresse"
+              placeholder="Addresse"
+              placeholderTextColor="#8B5A3C"
               value={formData.adresse}
               onChangeText={(text) => handleChange('adresse', text)}
             />
           </View>
-          {errors.adresse && <Text style={styles.errorText}>{errors.adresse}</Text>}
+          {errors.adresse && <Text style={styles.errorText}>❌ {errors.adresse}</Text>}
           
           {/* Password Inputs */}
+          <Text style={styles.inputLabel}>Mot de passe</Text>
           <View style={styles.inputRow}>
+             
             <View style={[styles.inputContainer, styles.halfInput, errors.password && styles.errorInput]}>
-              <Icon name="lock" size={20} color="#2A9D8F" style={styles.icon} />
+              <Text style={styles.inputEmoji}>🔒</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Mot de passe"
+                placeholderTextColor="#8B5A3C"
                 secureTextEntry={!showPassword}
                 value={formData.password}
                 onChangeText={(text) => handleChange('password', text)}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Icon name={showPassword ? 'eye-slash' : 'eye'} size={20} color="#2A9D8F" />
+                <Text style={styles.toggleEmoji}>
+                  {showPassword ? '👁️' : '🙈'}
+                </Text>
               </TouchableOpacity>
             </View>
+            
             <View style={[styles.inputContainer, styles.halfInput, errors.confirmPassword && styles.errorInput]}>
-              <Icon name="lock" size={20} color="#2A9D8F" style={styles.icon} />
+              
+              <Text style={styles.inputEmoji}>🔐</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Confirmation"
+                placeholder="Confirmé Mot de passe"
+                placeholderTextColor="#8B5A3C"
                 secureTextEntry={!showPassword}
                 value={formData.confirmPassword}
                 onChangeText={(text) => handleChange('confirmPassword', text)}
               />
             </View>
           </View>
-          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-          {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+          {errors.password && <Text style={styles.errorText}>❌ {errors.password}</Text>}
+          {errors.confirmPassword && <Text style={styles.errorText}>❌ {errors.confirmPassword}</Text>}
+               {/* Profile Image Upload */}
+          <View style={styles.imageUploadContainer}>
+            <TouchableOpacity style={styles.imageUpload} onPress={pickImage}>
+              {formData.profilepicture ? (
+                <Image source={{ uri: formData.profilepicture.uri }} style={styles.profileImage} />
+              ) : (
+                <>
+                   <MaterialIcons 
+  name="photo-library" 
+  size={32}            // adjust size as needed
+  color={colors.primary} 
+/>
+                 
+                  <Text style={styles.uploadText}>Gallerie</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.imageUpload} onPress={takePhoto}>
+               <Text style={styles.uploadEmoji}>📷</Text>
+          
+
+              <Text style={styles.uploadText}>Camera</Text>
+            </TouchableOpacity>
+          </View>
+
 
           {/* Submit Button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Créer mon compte</Text>
-            <Icon name="paw" size={20} color="white" style={styles.buttonIcon} />
+            <View style={styles.buttonContent}>
+              <Text style={styles.buttonText}>Creer un compte</Text>
+              <View style={styles.pawIcon}>
+                <Text style={styles.pawEmoji}>🐾</Text>
+              </View>
+            </View>
           </TouchableOpacity>
 
           {/* Login Link */}
-          <TouchableOpacity style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.loginText}>
-              Déjà membre? <Text style={styles.loginLinkText}>Connectez-vous ici</Text>
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Vous avez déjà un compte ? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.footerLink}>Se connecter</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFF5E6',
+    position: 'relative',
+  },
+  decorativeCircle1: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FF8C42',
+    opacity: 0.7,
+  },
+  decorativeCircle2: {
+    position: 'absolute',
+    top: 80,
+    right: 40,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FF8C42',
+    opacity: 0.5,
+  },
+  decorativeCircle3: {
+    position: 'absolute',
+    top: 120,
+    left: 60,
+    width: 15,
+    height: 15,
+    borderRadius: 7.5,
+    backgroundColor: '#FF8C42',
+    opacity: 0.4,
+  },
+  decorativeCircle4: {
+    position: 'absolute',
+    top: 40,
+    right: 80,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF8C42',
+    opacity: 0.6,
+  },
+  decorativeCircle5: {
+    position: 'absolute',
+    top: 200,
+    left: 30,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FF8C42',
+    opacity: 0.3,
+  },
+  decorativeCircle6: {
+    position: 'absolute',
+    top: 160,
+    right: 50,
+    width: 25,
+    height: 25,
+    borderRadius: 12.5,
+    backgroundColor: '#FF8C42',
+    opacity: 0.4,
   },
   scrollContainer: {
-    padding: 20,
-    minHeight: '100%',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  welcomeText: {
+    fontSize: 20,
+    color: '#2D2D2D',
+    textAlign: 'center',
+    marginBottom: 5,
+    fontWeight: '400',
+  },
+  appName: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#FF8C42',
+    textAlign: 'center',
+    marginBottom: 20,
+    textShadowColor: 'rgba(255, 140, 66, 0.3)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  imageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  petImage: {
+    width: '100%',
+    height: '100%',
   },
   formCard: {
-    backgroundColor: 'white',
-    borderRadius: 20,
+    backgroundColor: '#D2691E',
+    borderRadius: 25,
     padding: 25,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#264653',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 25,
+    opacity: 0.9,
   },
-  imageUploadContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
+imageUploadContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-evenly', // Horizontal centering
+  alignItems: 'center',     // Vertical centering (optional)
+  marginBottom: 20,
+  marginRight:'20px'
+},
   imageUpload: {
-    height: 120,
+    height: 70,
     width: '48%',
     borderWidth: 2,
-    borderColor: '#2A9D8F',
+    borderColor: '#FFFFFF',
     borderStyle: 'dashed',
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F4C2A1',
   },
   profileImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 15,
+    borderRadius: 13,
+  },
+  uploadEmoji: {
+    fontSize: 30,
+    marginBottom: 5,
   },
   uploadText: {
-    color: '#2A9D8F',
-    marginTop: 8,
+    color: '#8B4513',
     fontSize: 14,
+    fontWeight: '600',
   },
   inputRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E9C46A',
-    borderRadius: 10,
+    backgroundColor: '#F4C2A1',
+    borderRadius: 15,
     paddingHorizontal: 15,
-    height: 50,
-    backgroundColor: '#FFF',
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 5,
   },
   halfInput: {
     width: '48%',
   },
-  icon: {
+  inputEmoji: {
+    fontSize: 18,
     marginRight: 10,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#264653',
-    paddingVertical: Platform.OS === 'ios' ? 10 : 5,
+    color: '#8B4513',
+    fontWeight: '500',
   },
   phoneContainer: {
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4C2A1',
+    borderRadius: 15,
+    paddingLeft: 15,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 5,
+  },
+  phoneEmoji: {
+    fontSize: 18,
+    marginRight: 10,
   },
   phoneInputContainer: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E9C46A',
-    borderRadius: 10,
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   phoneTextContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: 'transparent',
     paddingVertical: 0,
-    borderRadius: 10,
+  },
+  phoneTextInput: {
+    color: '#8B4513',
+    fontWeight: '500',
+    fontSize: 16,
+  },
+  codeText: {
+    color: '#8B4513',
+    fontWeight: '500',
+  },
+  flagButton: {
+    backgroundColor: 'transparent',
+  },
+  toggleEmoji: {
+    fontSize: 18,
+    padding: 5,
   },
   errorInput: {
-    borderColor: '#E76F51',
+    borderColor: '#FF4444',
+    borderWidth: 2,
   },
   errorText: {
-    color: '#E76F51',
+    color: '#FFFFFF',
     fontSize: 12,
     marginBottom: 10,
     marginLeft: 5,
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+   inputLabel: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginBottom: 8,
+    fontWeight: '600',
   },
   submitButton: {
+    backgroundColor: '#8B4513',
+    paddingVertical: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2A9D8F',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF',
+    fontWeight: 'bold',
     fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: 8,
   },
-  buttonIcon: {
-    marginLeft: 5,
+  pawIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 15,
+    padding: 5,
+    minWidth: 30,
+    alignItems: 'center',
   },
-  loginLink: {
-    marginTop: 20,
+  pawEmoji: {
+    fontSize: 16,
   },
-  loginText: {
-    textAlign: 'center',
-    color: '#264653',
-  },
-  loginLinkText: {
-    color: '#E76F51',
-    fontWeight: 'bold',
-  },
-  pickerContainer: {
-    flex: 1,
+  footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
+    justifyContent: 'center',
+    marginTop: 25,
+    flexWrap: 'wrap',
   },
-  roleButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  selectedRole: {
-    backgroundColor: '#2A9D8F',
-    borderColor: '#2A9D8F',
-  },
-  roleButtonText: {
-    color: '#264653',
-    fontSize: 14,
-  },
-  selectedRoleText: {
+  footerText: {
     color: '#FFFFFF',
     fontSize: 14,
+    opacity: 0.9,
+  },
+  footerLink: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
 });
-
-export default RegisterScreen;

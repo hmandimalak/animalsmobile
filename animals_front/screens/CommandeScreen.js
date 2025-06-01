@@ -7,13 +7,15 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  TextInput
+  TextInput,
+  StyleSheet
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import tw from 'tailwind-react-native-classnames';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authenticatedFetch } from '../android/app/authInterceptor';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Helper function to get authentication token
 const getAuthToken = async () => {
@@ -47,6 +49,20 @@ const CommandeScreen = () => {
     ville: '',
     telephone: ''
   });
+     const COLORS = {
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
+
 
   // Fetch cart items and user profile on component mount
   useEffect(() => {
@@ -152,23 +168,10 @@ const CommandeScreen = () => {
     return cartItems.reduce((total, item) => total + (item.prix * item.quantity), 0).toFixed(2);
   };
 
-  const getSubtotal = () => {
-    return (parseFloat(getTotalPrice()) * 0.8).toFixed(2);
-  };
-
-  const getTVA = () => {
-    return (parseFloat(getTotalPrice()) * 0.2).toFixed(2);
-  };
-
-  const getLivraisonFees = () => {
-    const total = parseFloat(getTotalPrice());
-    return total >= 50 ? "0.00" : "5.00";
-  };
-
   const getFinalTotal = () => {
     const total = parseFloat(getTotalPrice());
-    const livraison = total >= 50 ? 0 : 5;
-    return (total + livraison).toFixed(2);
+ 
+    return (total).toFixed(2);
   };
 
   // Handle quantity change for cart items
@@ -372,17 +375,24 @@ const CommandeScreen = () => {
   return (
     <View style={tw`flex-1 bg-gray-50`}>
       {/* Header */}
-      <View style={tw`bg-white px-4 pt-12 pb-4 shadow-md`}>
-        <View style={tw`flex-row items-center`}>
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Panier')} 
-            style={tw`p-2 mr-4`}
-          >
-            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
-          </TouchableOpacity>
-          <Text style={tw`text-2xl font-bold`}>Finaliser la commande</Text>
-        </View>
-      </View>
+        <LinearGradient
+               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                 start={{ x: 0, y: 0 }}
+                 end={{ x: 1, y: 0 }}
+                 style={styles.header}
+               >
+                 <View style={styles.headerContent}>
+                   <TouchableOpacity
+                     onPress={() => navigation.navigate('Panier')} 
+                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                     style={styles.backButton}
+                   >
+                     <Ionicons name="arrow-back" size={24} color="white" />
+                   </TouchableOpacity>
+                   <Text style={styles.headerTitle}>Finaliser la commande</Text>
+                   <View style={{ width: 24 }} />
+                 </View>
+               </LinearGradient>
 
       <ScrollView style={tw`flex-1`} contentContainerStyle={tw`p-4 pb-32`}>
         {/* Shipping Information Form */}
@@ -536,26 +546,12 @@ const CommandeScreen = () => {
           })}
           
           {/* Price Breakdown */}
-          <View style={tw`mt-4 pt-4 border-t border-gray-200`}>
-            <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`text-gray-600`}>Sous-total</Text>
-              <Text style={tw`font-medium`}>{getSubtotal()} DT</Text>
-            </View>
-            <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`text-gray-600`}>TVA (20%)</Text>
-              <Text style={tw`font-medium`}>{getTVA()} DT</Text>
-            </View>
-            <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`text-gray-600`}>Frais de livraison</Text>
-              <Text style={tw`font-medium`}>
-                {getLivraisonFees() === "0.00" ? "Gratuit" : `${getLivraisonFees()} DT`}
-              </Text>
-            </View>
+
             <View style={tw`flex-row justify-between mt-4 pt-4 border-t border-gray-200`}>
               <Text style={tw`text-lg font-bold`}>Total</Text>
               <Text style={tw`text-lg font-bold text-purple-600`}>{getFinalTotal()} DT</Text>
             </View>
-          </View>
+          
         </View>
       </ScrollView>
       
@@ -579,5 +575,41 @@ const CommandeScreen = () => {
     </View>
   );
 };
+const styles = StyleSheet.create({
+ headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+ },
+ header: {
+    padding: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  
+  backButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 30,
+    padding: 8,
+  },
+     headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+    headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },})
 
 export default CommandeScreen;

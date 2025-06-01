@@ -18,6 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import tw from 'tailwind-react-native-classnames';
+import Notifications from './NotificationsScreen';
+import NotificationPopup from './NotificationPopup';
 import { 
   MaterialIcons,
   FontAwesome5,
@@ -27,38 +29,57 @@ import {
   Feather
 } from '@expo/vector-icons';
 import Sidebar from './SidebarScreen';
+import NotificationsScreen from './NotificationsScreen';
+import HomeStyles from '../components/HomeStyles';
 
 // API Base URL - Change to your production URL when ready
 const API_BASE_URL = 'http://192.168.0.132:8000/api';
 
-// Theme colors
+// Enhanced Theme colors with gradients and modern palette
+// Replace the existing COLORS object with this updated version
+// Replace the existing COLORS object with this updated version
 const COLORS = {
-  primary: '#00c2cb',
-  secondary: '#e6fcfd',
-  accent: '#00a8b0',
-  dark: '#333333',
+  primary: '#6A89A7',    // Soft blue (main color)
+  secondary: '#BDDDFC',   // Light sky blue
+  accent: '#88BDF2',      // Sky blue
+  tertiary: '#E4F0FD',    // Very light blue
+  dark: '#384959',        // Dark blue-gray
   white: '#FFFFFF',
-  gray: '#F0F0F0',
-  darkGray: '#707070',
-  lightGray: '#e6e6e6',
-  danger: '#ff6b6b',
+  gray: '#F7FAFC',
+  darkGray: '#718096',
+  lightGray: '#E2E8F0',
+  danger: '#EF4444',
+  success: '#48BB78',
+  warning: '#ED8936',
+  
+  // Removed all pink-related colors
+  gradientStart: '#6A89A7',
+  gradientEnd: '#384959',
+  cardBackground: '#FEFEFE',
+  shadowColor: 'rgba(106, 137, 167, 0.15)',
+  
+  // Updated animal colors to blue variants
+  dogColor: '#A7C6E5',    // Light blue for dogs
+  catColor: '#B5D3E7',    // Light blue for cats
+  birdColor: '#87CEEB',    // Sky blue for birds
+  rabbitColor: '#98D1D1',  // Light teal for rabbits
 };
 
 // Screen dimensions
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-// Animal types with icons
+// Animal types with enhanced icons and cute colors
 const animalTypes = [
-  { id: 'chien', name: 'chien', icon: 'chien' },
-  { id: 'chat', name: 'chat', icon: 'chat' },
-  { id: 'oiseau', name: 'oiseau', icon: 'oiseau' },
-  { id: 'lapin', name: 'lapin', icon: 'lapin' },
+  { id: 'chien', name: '🐕 Chiens', icon: 'dog', color: COLORS.dogColor },
+  { id: 'chat', name: '🐱 Chats', icon: 'cat', color: COLORS.catColor },
+  { id: 'oiseau', name: '🐦 Oiseaux', icon: 'twitter', color: COLORS.birdColor },
+  { id: 'lapin', name: '🐰 Lapins', icon: 'heart', color: COLORS.rabbitColor },
 ];
 
-// animal options
+// Enhanced animal options
 const speciesOptions = {
   chien: [
-    "Berger Allemand", "Labrador Retriever", "Golden Retriever", "Bullchien",
+    "Berger Allemand", "Labrador Retriever", "Golden Retriever", "Bulldog",
     "Rottweiler", "Husky Sibérien", "Beagle", "Caniche", "Chihuahua",
     "Yorkshire Terrier", "Autre"
   ],
@@ -83,29 +104,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [featuredAnimals, setFeaturedAnimals] = useState([]);
-  const [sidebarAnim] = useState(new Animated.Value(-300));
   const [pageLoading, setPageLoading] = useState(false);
   const [token, setToken] = useState(null);
   const [age, setAge] = useState('');
+  const [adoptedCount, setAdoptedCount] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   // Fallback image for when animal images are unavailable
   const fallbackImage = require('../assets/dogandcat.jpeg');
-
-  useEffect(() => {
-    if (isSidebarOpen) {
-      Animated.timing(sidebarAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(sidebarAnim, {
-        toValue: -300,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isSidebarOpen, sidebarAnim]);
 
   useEffect(() => {
     // Check for authentication and fetch featured animals
@@ -126,9 +132,6 @@ export default function Home() {
             .then((data) => setUser(data))
             .catch((error) => console.error("Error fetching user profile", error));
         }
-        
-        // Fetch featured animals
-        fetchAnimals ();
       } catch (error) {
         console.error("Initialization error", error);
       }
@@ -137,47 +140,23 @@ export default function Home() {
     initialize();
   }, []);
 
-  // Function to fetch featured animals
-  const fetchFeaturedAnimals = async () => {
-    setPageLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/animals/featured/`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch featured animals');
+  useEffect(() => {
+    const fetchAdoptedCount = async () => {
+      try {
+        const response = await fetch("http://192.168.0.132:8000/api/animals/adopted-count/");
+        if (!response.ok) throw new Error("Failed to load adopted count");
+        const data = await response.json();
+        setAdoptedCount(data.adopted_count || 0);
+      } catch (err) {
+        console.error("Error fetching adopted count:", err);
+      } finally {
+        setLoadingStats(false);
       }
-      const data = await response.json();
-      setFeaturedAnimals(data);
-    } catch (error) {
-      console.error("Error fetching featured animals:", error);
-      // Use mock data as fallback if API request fails
-      setFeaturedAnimals([
-        {
-          id: 1,
-          nom: "Buddy",
-          espece: "chien",
-          race: "Labrador Retriever",
-          description: "Loyal Friend Needs a Forever Home",
-          image: null, // Will use fallback image
-          sexe: 'M',
-          age: '2 years',
-          location: '3 miles away'
-        },
-        {
-          id: 2,
-          nom: "Whiskers",
-          espece: "chat",
-          race: "Tabby",
-          description: "Affectionate Lap Cat Hoping to Meet You",
-          image: null, // Will use fallback image
-          sexe: 'F',
-          age: '1 year',
-          location: '5 miles away'
-        }
-      ]);
-    } finally {
-      setPageLoading(false);
-    }
-  };
+    };
+
+    fetchAdoptedCount();
+  }, []);
+
   const formatAge = (dateString) => {
     if (!dateString) return "Âge inconnu";
     
@@ -209,8 +188,24 @@ export default function Home() {
     }
     
     return ageParts.join(' et ') || 'Nouveau-né';
-};
+  };
 
+  const StatCard = ({ value, label, icon, color }) => (
+    <View style={HomeStyles.statCard}>
+      <View style={HomeStyles.statCardContent}>
+        <View style={[HomeStyles.statIconContainer, { backgroundColor: `${color}20` }]}>
+          {icon}
+        </View>
+        <View style={HomeStyles.statTextContainer}>
+          <Text style={HomeStyles.statValue}>{value.toLocaleString()}+</Text>
+          <Text style={HomeStyles.statLabel}>{label}</Text>
+        </View>
+        <View style={HomeStyles.heartDecoration}>
+          <Text style={HomeStyles.heartEmoji}>💕</Text>
+        </View>
+      </View>
+    </View>
+  );
 
   // Function to search animals based on criteria
   const fetchAnimals = async (query = '', type = '', species = '', age = '', sexe = '') => {
@@ -234,8 +229,7 @@ export default function Home() {
       setHasSearched(true);
     } catch (error) {
       console.error('Error fetching animals:', error);
-      // Show an error message to the user
-      alert('Could not fetch animals. Please try again later.');
+      alert('Impossible de récupérer les animaux. Veuillez réessayer plus tard.');
     } finally {
       setLoading(false);
     }
@@ -254,7 +248,7 @@ export default function Home() {
       setIsModalOpen(true);
     } catch (error) {
       console.error('Failed to fetch animal details', error);
-      alert('Could not load animal details. Please try again.');
+      alert('Impossible de charger les détails de l\'animal. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -271,7 +265,6 @@ export default function Home() {
 
   const handleanimalSelect = (animal) => {
     setSelectedanimal(animal);
-    // Trigger search with selected type and species
     fetchAnimals('', selectedAnimalType, animal);
   };
 
@@ -281,7 +274,7 @@ export default function Home() {
 
   const handleAdoptClick = async () => {
     if (!token) {
-      alert("Please login to submit an adoption request.");
+      alert("Veuillez vous connecter pour soumettre une demande d'adoption.");
       setIsModalOpen(false);
       navigation.navigate('Login');
       return;
@@ -303,16 +296,16 @@ export default function Home() {
         throw new Error('Failed to submit adoption request');
       }
       
-      alert("Adoption request sent successfully!");
+      alert("Demande d'adoption envoyée avec succès!");
       setIsModalOpen(false);
     } catch (error) {
       console.error("Network error:", error);
-      alert("Connection error. Please check your internet connection.");
+      alert("Erreur de connexion. Veuillez vérifier votre connexion internet.");
     }
   };
 
   const getCurrentUser = () => {
-    return user ? user.nom : "Guest";
+    return user ? user.nom : "Invité";
   };
 
   // Get the appropriate image source
@@ -328,368 +321,270 @@ export default function Home() {
     return { uri: `http://192.168.0.132:8000${animal.image}` };
   };
 
-  // Render animal card
+  // Enhanced animal card with better styling
   const renderAnimalCard = ({ item }) => (
     <TouchableOpacity 
       onPress={() => fetchAnimalDetails(item.id)}
-      style={{
-        backgroundColor: COLORS.white,
-        borderRadius: 20,
-        marginRight: 16,
-        marginBottom: 8,
-        width: width * 0.8,
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        overflow: 'hidden',
-      }}
+      style={HomeStyles.animalCard}
+      activeOpacity={0.9}
     >
-      <Image
-        source={
-          item.image
-            ? { uri: `http://192.168.0.132:8000${item.image}` }
-            : require('../assets/dogandcat.jpeg')
-        }
-        style={{
-          width: '100%',
-          height: 200,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20
-        }}
-        resizeMode="cover"
-      />
-      <View style={{ padding: 16 }}>
-        <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.dark }}>{item.description}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-          <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, color: COLORS.darkGray }}>
-  {item.race} • {item.date_naissance ? formatAge(item.date_naissance) : 'Unknown'}
-</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-              <Feather name="map-pin" size={12} color={COLORS.primary} />
-              <Text style={{ fontSize: 12, color: COLORS.darkGray, marginLeft: 4 }}>
+      <View style={HomeStyles.imageContainer}>
+        <Image
+          source={
+            item.image
+              ? { uri: `http://192.168.0.132:8000${item.image}` }
+              : require('../assets/dogandcat.jpeg')
+          }
+          style={HomeStyles.animalImage}
+          resizeMode="cover"
+        />
+        <View style={HomeStyles.heartBadge}>
+          <Text style={HomeStyles.heartBadgeText}>❤️</Text>
+        </View>
+      </View>
+      <View style={HomeStyles.animalCardContent}>
+        <Text style={HomeStyles.animalTitle}>{item.description}</Text>
+        <View style={HomeStyles.animalDetails}>
+          <View style={HomeStyles.animalInfo}>
+            <Text style={HomeStyles.animalSubtitle}>
+              {item.race} • {item.date_naissance ? formatAge(item.date_naissance) : 'Inconnu'}
+            </Text>
+            <View style={HomeStyles.locationContainer}>
+              <Text style={HomeStyles.locationIcon}>📍</Text>
+              <Text style={HomeStyles.locationText}>
                 {item.location}
               </Text>
             </View>
           </View>
-          <View style={{ 
-            backgroundColor: COLORS.secondary, 
-            paddingHorizontal: 12, 
-            paddingVertical: 6, 
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: COLORS.primary
-          }}>
-            <Text style={{ fontSize: 12, color: COLORS.primary, fontWeight: '600' }}>
-              View
+          <View style={HomeStyles.viewButton}>
+            <Text style={HomeStyles.viewButtonText}>
+              Voir ✨
             </Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
-  // Animal type pill button
+
+  // Enhanced animal type pill with better styling and colors
   const renderAnimalTypePill = ({ item }) => (
     <TouchableOpacity
-      style={{
-        backgroundColor: selectedAnimalType === item.id ? COLORS.primary : COLORS.lightGray,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        marginRight: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 80,
-      }}
+      style={[
+        HomeStyles.animalTypePill,
+        {
+          backgroundColor: selectedAnimalType === item.id ? item.color : COLORS.white,
+          borderColor: item.color,
+        }
+      ]}
       onPress={() => handleAnimalTypeSelect(item.id)}
+      activeOpacity={0.8}
     >
-      {selectedAnimalType === item.id && (
-        <AntDesign name="check" size={14} color={COLORS.white} style={{ marginRight: 4 }} />
-      )}
       <Text style={{ 
         color: selectedAnimalType === item.id ? COLORS.white : COLORS.dark,
-        fontWeight: selectedAnimalType === item.id ? 'bold' : 'normal',
+        fontWeight: selectedAnimalType === item.id ? 'bold' : '600',
+        fontSize: 14,
       }}>
         {item.name}
       </Text>
     </TouchableOpacity>
   );
 
-  // AnimalDetailsModal using Tailwind styles
-const AnimalDetailsModal = () => (
-  <Modal
-    visible={isModalOpen}
-    transparent={true}
-    animationType="slide"
-    onRequestClose={() => setIsModalOpen(false)}
-  >
-    <View style={tw`flex-1 justify-end bg-black bg-opacity-50`}>
-      <View style={tw`bg-white rounded-t-3xl p-5 max-h-4/5`}>
-        {/* Close Button */}
-        <TouchableOpacity
-          onPress={() => setIsModalOpen(false)}
-          style={tw`self-end mb-3`}
-        >
-          <Ionicons name="close" size={24} color="#333" />
-        </TouchableOpacity>
+  // Enhanced AnimalDetailsModal with better styling
+  const AnimalDetailsModal = () => (
+    <Modal
+      visible={isModalOpen}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setIsModalOpen(false)}
+    >
+      <View style={HomeStyles.modalOverlay}>
+        <View style={HomeStyles.modalContent}>
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={() => setIsModalOpen(false)}
+            style={HomeStyles.closeButton}
+          >
+            <Text style={HomeStyles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
 
-        {/* Pet Name Header */}
-        <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-2`}>
-          {selectedAnimal?.nom}
-        </Text>
-        {/* Image */}
-        <Image
-  source={{
-    uri: `http://192.168.0.132:8000${selectedAnimal.image}`
-  }}
-  style={{
-    width: '100%',
-    height: 200,
-    borderRadius: 20
-  }}
-  resizeMode="cover"
-/>
-
-        {/* Details Grid */}
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={tw`flex-row justify-between mb-6`}>
-            <View style={tw`items-center flex-1 p-2 bg-blue-50 rounded-lg mx-1`}>
-              <Text style={tw`text-xs text-gray-500`}>Sexe</Text>
-              <Text style={tw`text-base font-semibold text-gray-800 mt-1`}>
-                {selectedAnimal?.sexe === 'M' ? 'Male' : 'Female'}
-              </Text>
-            </View>
-            <View style={tw`items-center flex-1 p-2 bg-blue-50 rounded-lg mx-1`}>
-              <Text style={tw`text-xs text-gray-500`}>Age</Text>
-              <Text style={tw`text-base font-semibold text-gray-800 mt-1`}>
-              {selectedAnimal?.date_naissance ? formatAge(selectedAnimal.date_naissance) : 'Unconnu'}
-              </Text>
-            </View>
-            <View style={tw`items-center flex-1 p-2 bg-blue-50 rounded-lg mx-1`}>
-              <Text style={tw`text-xs text-gray-500`}>race</Text>
-              <Text style={tw`text-base font-semibold text-gray-800 mt-1`}>
-                {selectedAnimal?.race}
-              </Text>
-            </View>
-          </View>
-
-          {/* Description */}
-          <Text style={tw`font-bold text-lg text-gray-800 mb-2`}>Description</Text>
-          <Text style={tw`text-gray-600 mb-6`}>
-            {selectedAnimal?.description || "No description available."}
+          {/* Pet Name Header */}
+          <Text style={HomeStyles.modalTitle}>
+            {selectedAnimal?.nom} 🐾
           </Text>
 
-          {/* Action Buttons */}
-          <View style={tw`flex-row items-center justify-between pt-4 border-t border-gray-200`}>
-            <TouchableOpacity style={tw`p-3 rounded-full bg-blue-100 mr-4`}>
-              <FontAwesome name="heart-o" size={20} color="#00c2cb" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={tw`flex-1 bg-teal-500 py-4 rounded-xl items-center`}
-              onPress={handleAdoptClick}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={tw`text-white font-bold text-lg`}>Adopt Me</Text>
-              )}
-            </TouchableOpacity>
+          {/* Image */}
+          <View style={HomeStyles.modalImageContainer}>
+            <Image
+              source={{
+                uri: `http://192.168.0.132:8000${selectedAnimal.image}`
+              }}
+              style={HomeStyles.modalImage}
+              resizeMode="cover"
+            />
+            <View style={HomeStyles.modalHeartBadge}>
+              <Text style={HomeStyles.modalHeartText}>💖</Text>
+            </View>
           </View>
-        </ScrollView>
+
+          {/* Details Grid */}
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={HomeStyles.detailsGrid}>
+              <View style={HomeStyles.detailCard}>
+                <Text style={HomeStyles.detailLabel}>Sexe</Text>
+                <Text style={HomeStyles.detailValue}>
+                  {selectedAnimal?.sexe === 'M' ? '♂️ Mâle' : '♀️ Femelle'}
+                </Text>
+              </View>
+              <View style={HomeStyles.detailCard}>
+                <Text style={HomeStyles.detailLabel}>Âge</Text>
+                <Text style={HomeStyles.detailValue}>
+                  🎂 {selectedAnimal?.date_naissance ? formatAge(selectedAnimal.date_naissance) : 'Inconnu'}
+                </Text>
+              </View>
+              <View style={HomeStyles.detailCard}>
+                <Text style={HomeStyles.detailLabel}>Race</Text>
+                <Text style={HomeStyles.detailValue}>
+                  🏷️ {selectedAnimal?.race}
+                </Text>
+              </View>
+            </View>
+
+            {/* Description */}
+            <Text style={HomeStyles.descriptionTitle}>Description 📝</Text>
+            <Text style={HomeStyles.descriptionText}>
+              {selectedAnimal?.description || "Aucune description disponible."}
+            </Text>
+
+            {/* Action Buttons */}
+            <View style={HomeStyles.actionButtons}>
+              <TouchableOpacity style={HomeStyles.favoriteButton}>
+                <Text style={HomeStyles.favoriteButtonText}>💝</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={HomeStyles.adoptButton}
+                onPress={handleAdoptClick}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={HomeStyles.adoptButtonText}>🏡 Adopter</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-      <StatusBar backgroundColor={COLORS.primary} />
+    <SafeAreaView style={HomeStyles.container}>
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
       
       {/* Loading Overlay */}
       {pageLoading && (
-        <View style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(255,255,255,0.7)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 100
-        }}>
+        <View style={HomeStyles.loadingOverlay}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={{ marginTop: 10, color: COLORS.darkGray }}>Loading animals...</Text>
+          <Text style={HomeStyles.loadingText}>Chargement des animaux... 🐾</Text>
         </View>
       )}
       
       {/* Animated Sidebar */}
-      <Animated.View 
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          height: '100%',
-          width: 270,
-          backgroundColor: COLORS.white,
-          zIndex: 50,
-          elevation: 10,
-          transform: [{ translateX: sidebarAnim }]
-        }}
-      >
-        <Sidebar onClose={() => setIsSidebarOpen(false)} />
-      </Animated.View>
+      <Sidebar 
+        isVisible={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
 
       {/* Main Content */}
       <View style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          paddingHorizontal: 20, 
-          paddingVertical: 16,
-          backgroundColor: COLORS.white
-        }}>
-          <TouchableOpacity onPress={toggleSidebar}>
-            <MaterialIcons name="menu" size={28} color={COLORS.dark} />
+        {/* Enhanced Header */}
+        <View style={HomeStyles.header}>
+          <TouchableOpacity onPress={toggleSidebar} style={HomeStyles.menuButton}>
+            <Text style={HomeStyles.menuIcon}>☰</Text>
           </TouchableOpacity>
           
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={HomeStyles.logoContainer}>
             <Image 
               source={require('../assets/dogandcat.jpeg')} 
-              style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }} 
+              style={HomeStyles.logoImage}
             />
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.dark }}>
-              Adopti
+            <Text style={HomeStyles.logoText}>
+              Adopti 🐾
             </Text>
           </View>
           
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <FontAwesome name="user-circle" size={28} color={COLORS.dark} />
-          </TouchableOpacity>
+          <View style={HomeStyles.headerRightContainer}>
+            <NotificationPopup />
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Profile')} 
+              style={HomeStyles.profileButton}
+            >
+              <Text style={HomeStyles.profileIcon}>👤</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView 
-          style={{ flex: 1, backgroundColor: COLORS.white }} 
+          style={HomeStyles.scrollView} 
           showsVerticalScrollIndicator={false}
         >
-          {/* Search Bar */}
-          <View style={{ paddingHorizontal: 20, marginTop: 8, marginBottom: 16 }}>
-            <View style={{ 
-              flexDirection: 'row', 
-              backgroundColor: COLORS.lightGray, 
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              alignItems: 'center'
-            }}>
-              <Feather name="search" size={18} color={COLORS.darkGray} />
-              <TextInput
-                style={{ 
-                  flex: 1, 
-                  marginLeft: 10, 
-                  fontSize: 16, 
-                  color: COLORS.dark 
-                }}
-                placeholder="Search for a pet"
-                placeholderTextColor={COLORS.darkGray}
-                value={searchTerm}
-                onChangeText={setSearchTerm}
+          {/* Welcome Section */}
+          <View style={HomeStyles.welcomeSection}>
+            <Text style={HomeStyles.welcomeText}>
+              Bonjour {getCurrentUser()}! 👋
+            </Text>
+            <Text style={HomeStyles.welcomeSubtext}>
+              Trouvez votre compagnon parfait 💕
+            </Text>
+          </View>
+
+          {/* Enhanced Animal Types */}
+          <View style={HomeStyles.animalTypeContainer}>
+            <View style={HomeStyles.animalTypeRow}>
+              <FlatList
+                data={animalTypes}
+                renderItem={renderAnimalTypePill}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={HomeStyles.animalTypeList}
+                style={{ flex: 1 }}
               />
-              <TouchableOpacity onPress={handleSearch}>
-                <View style={{
-                  backgroundColor: COLORS.primary,
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  borderRadius: 8
-                }}>
-                  <Text style={{ color: COLORS.white, fontWeight: '600' }}>Search</Text>
-                </View>
+              <TouchableOpacity style={HomeStyles.searchButton} onPress={handleSearch}>
+                <Text style={HomeStyles.searchButtonText}>🔍 Rechercher</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Animal Types */}
-          <View style={{ marginBottom: 24 }}>
-          <FlatList
-          data={featuredAnimals}
-          renderItem={renderAnimalCard}
-          keyExtractor={item => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20 }}
-        />
-          </View>
-          
-          {/* Search Results if any */}
-          {hasSearched && searchResults.length > 0 && (
-            <View style={{ marginBottom: 24 }}>
-              <View style={{ 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                paddingHorizontal: 20, 
-                marginBottom: 16 
-              }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.dark }}>
-                  Search Results
-                </Text>
-              </View>
-              
-              <FlatList
-                data={searchResults}
-                renderItem={renderAnimalCard}
-                keyExtractor={item => item.id.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20 }}
-              />
-            </View>
-          )}
-          
-         
-            
-         
-          
-          {/* animals Section */}
+          {/* Enhanced Species Section */}
           {selectedAnimalType && speciesOptions[selectedAnimalType] && (
-            <View style={{ marginBottom: 24 }}>
-              <View style={{ 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                paddingHorizontal: 20, 
-                marginBottom: 16 
-              }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.dark }}>
-                  Popular animals
-                </Text>
+            <View style={HomeStyles.speciesSection}>
+              <View style={HomeStyles.sectionHeader}>
+                <Text style={HomeStyles.sectionTitle}>Races populaires 🌟</Text>
               </View>
               
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20 }}
+                contentContainerStyle={HomeStyles.speciesContainer}
               >
                 {speciesOptions[selectedAnimalType]?.map((animal) => (
                   <TouchableOpacity
                     key={animal}
-                    style={{
-                      backgroundColor: selectedanimal === animal ? COLORS.primary : COLORS.lightGray,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 16,
-                      marginRight: 8,
-                      marginBottom: 8
-                    }}
+                    style={[
+                      HomeStyles.speciesButton,
+                      {
+                        backgroundColor: selectedanimal === animal ? COLORS.primary : COLORS.white,
+                        borderColor: COLORS.primary,
+                      }
+                    ]}
                     onPress={() => handleanimalSelect(animal)}
+                    activeOpacity={0.8}
                   >
                     <Text style={{ 
                       color: selectedanimal === animal ? COLORS.white : COLORS.dark,
-                      fontWeight: selectedanimal === animal ? 'bold' : 'normal'
+                      fontWeight: selectedanimal === animal ? 'bold' : '600',
+                      fontSize: 14,
                     }}>
                       {animal}
                     </Text>
@@ -699,72 +594,139 @@ const AnimalDetailsModal = () => (
             </View>
           )}
           
-          {/* Navigation Icons */}
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-around', 
-            paddingVertical: 20,
-            paddingHorizontal: 20,
-            backgroundColor: COLORS.white,
-            borderTopWidth: 1,
-            borderTopColor: COLORS.lightGray,
-            marginTop: 8
-          }}>
-            <TouchableOpacity style={{ alignItems: 'center' }}>
-              <View style={{ 
-                width: 50, 
-                height: 50, 
-                borderRadius: 25, 
-                backgroundColor: COLORS.primary,
-                justifyContent: 'center',
-                alignItems: 'center' 
-              }}>
-                <Feather name="home" size={24} color={COLORS.white} />
+          {/* Search Results if any */}
+          {hasSearched && searchResults.length > 0 && (
+            <View style={HomeStyles.searchResultsSection}>
+              <View style={HomeStyles.sectionHeader}>
+                <Text style={HomeStyles.sectionTitle}>Résultats de recherche 🎯</Text>
+                <Text style={HomeStyles.resultCount}>
+                  {searchResults.length} trouvé{searchResults.length > 1 ? 's' : ''} ✨
+                </Text>
               </View>
-              <Text style={{ fontSize: 12, color: COLORS.primary, marginTop: 4 }}>Home</Text>
+              
+              <FlatList
+                data={searchResults}
+                renderItem={renderAnimalCard}
+                keyExtractor={item => item.id.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={HomeStyles.animalCardList}
+              />
+            </View>
+          )}
+
+          {/* Enhanced Statistics Section */}
+          <View style={HomeStyles.statsSection}>
+            <View style={HomeStyles.sectionHeader}>
+              <Text style={HomeStyles.sectionTitle}>Animaux adoptés 🏠</Text>
+            </View>
+
+            {loadingStats ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <StatCard
+                value={adoptedCount}
+                label="Depuis 2020"
+                icon={<Text style={HomeStyles.statEmoji}>🏡</Text>}
+                color={COLORS.primary}
+              />
+            )}
+          </View>
+
+          {/* Success Stories Section */}
+          <View style={HomeStyles.successStoriesSection}>
+            <View style={HomeStyles.sectionHeader}>
+              <Text style={HomeStyles.sectionTitle}>Histoires de succès 🌈</Text>
+              <TouchableOpacity>
+                <Text style={HomeStyles.viewMoreText}>Voir plus ✨</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={HomeStyles.storiesContainer}
+            >
+              {[
+                {
+                  id: 1,
+                  title: "Buddy a trouvé sa famille 🎉",
+                  description: "Après 6 mois d'attente, Buddy vit maintenant avec une famille aimante avec deux enfants.",
+                  image: require('../assets/dogandcat.jpeg'),
+                  date: "Il y a 2 semaines"
+                },
+                {
+                  id: 2,
+                  title: "Luna et son nouveau foyer 🌙",
+                  description: "Cette belle chatte persane a été adoptée par un couple retraité adorable.",
+                  image: require('../assets/dogandcat.jpeg'),
+                  date: "Il y a 1 mois"
+                }
+              ].map((story) => (
+                <View key={story.id} style={HomeStyles.storyCard}>
+                  <View style={HomeStyles.storyImageContainer}>
+                    <Image
+                      source={story.image}
+                      style={HomeStyles.storyImage}
+                      resizeMode="cover"
+                    />
+                    <View style={HomeStyles.storyHeartBadge}>
+                      <Text style={HomeStyles.storyHeartText}>💖</Text>
+                    </View>
+                  </View>
+                  <View style={HomeStyles.storyContent}>
+                    <Text style={HomeStyles.storyTitle}>
+                      {story.title}
+                    </Text>
+                    <Text style={HomeStyles.storyDescription}>
+                      {story.description}
+                    </Text>
+                    <Text style={HomeStyles.storyDate}>
+                      {story.date}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Enhanced Bottom Navigation */}
+          <View style={HomeStyles.bottomNavigation}>
+            <TouchableOpacity style={HomeStyles.navButton}>
+              <View style={[HomeStyles.navIconContainer, { backgroundColor: COLORS.primary }]}>
+                <Text style={HomeStyles.activeNavIcon}>🏠</Text>
+              </View>
+              <Text style={[HomeStyles.navText, { color: COLORS.primary }]}>Accueil</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={{ alignItems: 'center' }}
-              onPress={() => navigation.navigate('Nosanimaux')} // ✅ Add this line
+              style={HomeStyles.navButton}
+              onPress={() => navigation.navigate('Nosanimaux')}
             >
-              <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: COLORS.lightGray, justifyContent: 'center', alignItems: 'center' }}>
-                <Feather name="message-circle" size={24} color={COLORS.darkGray} />
+              <View style={[HomeStyles.navIconContainer, { backgroundColor: COLORS.white }]}>
+                <Text style={HomeStyles.navIcon}>🐾</Text>
               </View>
-              <Text style={{ fontSize: 12, color: COLORS.darkGray, marginTop: 4 }}>Nosanimaux</Text>
+              <Text style={[HomeStyles.navText, { color: COLORS.darkGray }]}>Nos animaux</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={{ alignItems: 'center' }}
-            onPress={() => navigation.navigate('Garde')} // ✅ Add this line
+            <TouchableOpacity 
+              style={HomeStyles.navButton}
+              onPress={() => navigation.navigate('Garde')}
             >
-              
-              <View style={{ 
-                width: 50, 
-                height: 50, 
-                borderRadius: 25, 
-                backgroundColor: COLORS.lightGray,
-                justifyContent: 'center',
-                alignItems: 'center' 
-              }}>
-                <Feather name="message-circle" size={24} color={COLORS.darkGray} />
+              <View style={[HomeStyles.navIconContainer, { backgroundColor: COLORS.white }]}>
+                <Text style={HomeStyles.navIcon}>🏥</Text>
               </View>
-              <Text style={{ fontSize: 12, color: COLORS.darkGray, marginTop: 4 }}>service de garde</Text>
+              <Text style={[HomeStyles.navText, { color: COLORS.darkGray }]}>Garde</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={{ alignItems: 'center' }}
-            onPress={() => navigation.navigate('Boutique')} // ✅ Add this line
+            <TouchableOpacity 
+              style={HomeStyles.navButton}
+              onPress={() => navigation.navigate('Boutique')}
             >
-              <View style={{ 
-                width: 50, 
-                height: 50, 
-                borderRadius: 25, 
-                backgroundColor: COLORS.lightGray,
-                justifyContent: 'center',
-                alignItems: 'center' 
-              }}>
-                <Feather name="heart" size={24} color={COLORS.darkGray} />
+              <View style={[HomeStyles.navIconContainer, { backgroundColor: COLORS.white }]}>
+                <Text style={HomeStyles.navIcon}>🛍️</Text>
               </View>
-              <Text style={{ fontSize: 12, color: COLORS.darkGray, marginTop: 4 }}>boutique</Text>
+              <Text style={[HomeStyles.navText, { color: COLORS.darkGray }]}>Boutique</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
+import {MaterialCommunityIcons , Feather, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
@@ -52,6 +51,20 @@ export default function Garde() {
     date_fin: '',
     photo: null,
   });
+  const COLORS = {
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
+
 
   const speciesOptions = {
     Chien: [
@@ -69,7 +82,7 @@ export default function Garde() {
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
   const [showReservationDatePicker, setShowReservationDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
+  const [imageUri, setImageUri] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,7 +90,20 @@ export default function Garde() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAdoptedAnimal, setSelectedAdoptedAnimal] = useState(null);
   const [formMode, setFormMode] = useState('new'); // 'new' or 'existing'
-
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission refusée',
+            'Nous avons besoin de l’autorisation pour accéder à vos photos.'
+          );
+        }
+      }
+    })();
+  }, []);
   const fetchAdoptedAnimals = async () => {
     try {
       // Get current token before making the request
@@ -172,73 +198,63 @@ export default function Garde() {
     }
   };
 
-  const pickImage = async () => {
-    try {
-      // Request permissions
-      if (Platform.OS !== 'web') {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
-          return;
-        }
-      }
 
-      // Launch image picker
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setFormData({ ...formData, photo: result.assets[0] });
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to select image');
-    }
-  };
+ const validateForm = () => {
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+  
+  // Basic field validation
+  if (!formData.nom || formData.nom.trim() === "") {
+    Alert.alert("Erreur", "Le nom de l'animal est obligatoire.");
+    return false;
+  }
+  
+  if (!formData.espece) {
+    Alert.alert("Erreur", "Veuillez sélectionner une espèce.");
+    return false;
+  }
+  
+  if (!formData.race) {
+    Alert.alert("Erreur", "Veuillez sélectionner une race.");
+    return false;
+  }
+  
+  if (!formData.date_naissance) {
+    Alert.alert("Erreur", "Veuillez entrer la date de naissance.");
+    return false;
+  }
 
-  const validateForm = () => {
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split("T")[0];
-    const { date_naissance, date_reservation, date_fin, type_garde } = formData;
+  if (formData.date_naissance > today) {
+    Alert.alert("Erreur", "La date de naissance doit être aujourd'hui ou une date précédente.");
+    return false;
+  }
 
-    if (!date_naissance) {
-      Alert.alert('Erreur', 'Veuillez entrer la date de naissance.');
+  // For temporary garde type, validate date fields - CRITICAL PART
+  if (formData.type_garde === "Temporaire") {
+    if (!formData.date_reservation) {
+      Alert.alert("Erreur", "Veuillez entrer une date de réservation pour la garde temporaire.");
       return false;
     }
 
-    if (date_naissance > today) {
-      Alert.alert('Erreur', 'La date de naissance doit être aujourd\'hui ou une date précédente.');
+    if (!formData.date_fin) {
+      Alert.alert("Erreur", "Veuillez entrer une date de fin pour la garde temporaire.");
       return false;
     }
 
-    if (type_garde === 'Temporaire') {
-      if (!date_reservation) {
-        Alert.alert('Erreur', 'Veuillez entrer une date de réservation.');
-        return false;
-      }
-
-      if (date_reservation < today) {
-        Alert.alert('Erreur', 'La date de réservation doit être aujourd\'hui ou une date future.');
-        return false;
-      }
-
-      if (date_naissance >= date_reservation) {
-        Alert.alert('Erreur', 'La date de naissance doit être avant la date de réservation.');
-        return false;
-      }
-
-      if (date_fin && date_fin <= date_reservation) {
-        Alert.alert('Erreur', 'La date de fin doit être après la date de réservation.');
-        return false;
-      }
+    if (formData.date_reservation < today) {
+      Alert.alert("Erreur", "La date de réservation doit être aujourd'hui ou une date future.");
+      return false;
     }
 
-    return true;
-  };
+    if (formData.date_fin <= formData.date_reservation) {
+      Alert.alert("Erreur", "La date de fin doit être après la date de réservation.");
+      return false;
+    }
+  }
+
+  return true;
+};
   const getAuthToken = async () => {
   try {
     const token = await AsyncStorage.getItem('access_token');
@@ -255,118 +271,133 @@ export default function Garde() {
     return null;
   }
 };
+const pickImage = async () => {
+  try {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      // On réutilise MediaTypeOptions qui est bien défini :
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,  
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
 
- const handleSubmit = async () => {
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      setFormData(prev => ({ ...prev, photo: asset }));
+      console.log('Image sélectionnée :', asset.uri);
+    }
+  } catch (err) {
+    console.error('Erreur pickImage:', err);
+    Alert.alert('Erreur', 'Impossible de sélectionner une image.');
+  }
+};
+
+
+const handleSubmit = async () => {
+  // 0️⃣ Validation front
   if (!validateForm()) return;
 
   setLoading(true);
   setError(null);
 
   try {
-    const authToken = await getAuthToken();
-    const currentUserId = await AsyncStorage.getItem("user_id");
-
-    console.log("[DEBUG] Auth token for submission:", authToken ? "Token exists" : "No token");
-    console.log("[DEBUG] User ID for submission:", currentUserId);
-
-    if (!authToken || !currentUserId) {
+    // 1️⃣ Récupération du token
+     const Token = await getAuthToken();
+  // ← vérifiez bien cette clé !
+    console.log('[DEBUG] Retrieved token:', token ? 'Token exists' : 'No token');
+    if (!token) {
+      // 🔴 Pas de token → on arrête le loading, on alerte, on redirige
+      setLoading(false);
       Alert.alert(
-        "Connexion requise",
-        "Vous devez être connecté pour soumettre une demande de garde.",
-        [{ text: "OK", onPress: () => navigation.navigate('Login') }]
+        'Accès refusé',
+        'Veuillez vous identifier.',
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
       return;
     }
 
-    const apiFormData = new FormData();
-
+    // 2️⃣ Mode animal existant ?
     if (formMode === 'existing' && selectedAdoptedAnimal) {
-      apiFormData.append('animal', selectedAdoptedAnimal.id);
-      apiFormData.append('type_garde', formData.type_garde);
+      const payload = {
+        animal: selectedAdoptedAnimal.id,
+        type_garde: formData.type_garde,
+        ...(formData.type_garde === 'Temporaire' && {
+          date_reservation: formData.date_reservation,
+          date_fin:         formData.date_fin,
+        }),
+      };
+      console.log('[DEBUG] Auth token for adoption:', token ? 'Token exists' : 'No token');
+      console.log('🟢 POST garde existant:', payload);
+
+      const resp = await fetch(
+        'http://192.168.0.132:8000/api/animals/demandes-garde/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.detail || JSON.stringify(result));
+      console.log('✅ Garde existant OK:', result);
+      setIsModalOpen(true);
+
+    } else {
+      // 3️⃣ Nouveau animal + garde
+      const form = new FormData();
+      form.append('nom',            formData.nom.trim());
+      form.append('espece',         formData.espece);
+      form.append('race',           formData.race);
+      form.append('date_naissance', formData.date_naissance);
+      form.append('sexe',           formData.sexe);
+      form.append('description',    formData.description || '');
+      form.append('disponible_pour_adoption', 'false');
+      form.append('disponible_pour_garde',    'true');
+      form.append('type_garde',               formData.type_garde);
 
       if (formData.type_garde === 'Temporaire') {
-        apiFormData.append('date_reservation', formData.date_reservation);
-        if (formData.date_fin) {
-          apiFormData.append('date_fin', formData.date_fin);
-        }
+        form.append('date_reservation', formData.date_reservation);
+        form.append('date_fin',         formData.date_fin);
       }
-
-      apiFormData.append('utilisateur', currentUserId);
-
-      const response = await fetch('http://192.168.0.132:8000/api/animals/demandes-garde/', {
-        method: "POST",
-        headers: {
-        
-        'Authorization': authToken,
-        },
-        body: apiFormData,
-
-      });
-
-      const responseText = await response.text();
-      console.log("Server response text:", responseText);
-
-      if (response.ok) {
-        setIsModalOpen(true);
-      } else if (response.status === 401) {
-        Alert.alert("Session expirée", "Votre session a expiré. Veuillez vous reconnecter.");
-        navigation.navigate("Login");
-      } else {
-        try {
-          const errorData = JSON.parse(responseText);
-          Alert.alert("Erreur", errorData.detail || JSON.stringify(errorData));
-        } catch {
-          Alert.alert("Erreur", "Une erreur est survenue lors de la soumission.");
-        }
-      }
-    } else {
-      // For new animal
-      Object.keys(formData).forEach(key => {
-        if (key !== 'photo') {
-          apiFormData.append(key, formData[key]);
-        }
-      });
 
       if (formData.photo) {
-        apiFormData.append('image', {
-          uri: formData.photo.uri,
-          type: 'image/jpeg',
-          name: 'photo.jpg',
-        });
+        const { uri } = formData.photo;
+        const filename = uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        form.append('image', { uri, name: filename, type });
       }
 
-      apiFormData.append('utilisateur', currentUserId);
-
-      const response = await fetch('http://192.168.0.132:8000/api/animals/animaux/', {
-        method: "POST",
-        headers: {
-       
-        'Authorization': authToken,
-        },
-        body: apiFormData,
-      });
-
-      const responseText = await response.text();
-      console.log("Server response text:", responseText);
-
-      if (response.ok) {
-        setIsModalOpen(true);
-      } else if (response.status === 401) {
-        Alert.alert("Session expirée", "Votre session a expiré. Veuillez vous reconnecter.");
-        navigation.navigate("Login");
-      } else {
-        try {
-          const errorData = JSON.parse(responseText);
-          Alert.alert("Erreur", errorData.detail || JSON.stringify(errorData));
-        } catch {
-          Alert.alert("Erreur", "Une erreur est survenue lors de la soumission.");
+      console.log('🟢 POST animal+garde nouveau …');
+      const resp = await fetch(
+        'http://192.168.0.132:8000/api/animals/animaux/',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: form,
         }
+      );
+      const result = await resp.json();
+      if (!resp.ok) {
+        const msg = result.non_field_errors?.join(', ')
+                  || result.detail
+                  || JSON.stringify(result);
+        throw new Error(msg);
       }
+      console.log('✅ Animal+garde OK:', result);
+      setIsModalOpen(true);
     }
-  } catch (error) {
-    console.error("Network error:", error);
-    setError(error.message);
-    Alert.alert("Erreur réseau", "Une erreur de connexion est survenue");
+
+  } catch (err) {
+    console.error('❌ handleSubmit error:', err);
+    Alert.alert('Erreur', err.message || 'Une erreur est survenue');
+    setError(err.message);
+
   } finally {
     setLoading(false);
   }
@@ -378,18 +409,19 @@ export default function Garde() {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardContainer}
-      >
+   <KeyboardAvoidingView
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  style={{ flex: 1 }}
+  keyboardVerticalOffset={Platform.select({ ios: 100, android: 80 })}
+>
         <ScrollView 
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          contentContainerStyle={[styles.scrollViewContent, { paddingBottom: 100 }]}
         >
           {/* Header */}
           <LinearGradient
-            colors={['#8A2BE2', '#4B0082']}
+             colors={[COLORS.gradientStart, COLORS.gradientEnd]}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={styles.header}
@@ -424,7 +456,7 @@ export default function Garde() {
                 <MaterialCommunityIcons 
                   name="paw" 
                   size={20} 
-                  color={formMode === 'new' ? 'white' : '#8A2BE2'} 
+                  color={formMode === 'new' ? 'white' : COLORS.gradientStart} 
                 />
                 <Text style={[
                   styles.formModeButtonText,
@@ -443,7 +475,7 @@ export default function Garde() {
               ]}
             >
               <View style={styles.formModeButtonContent}>
-               <MaterialCommunityIcons name="format-list-bulleted" size={20} color={formMode === 'existing' ? 'white' : '#8A2BE2'} />
+               <MaterialCommunityIcons name="format-list-bulleted" size={20} color={formMode === 'existing' ? 'white' : COLORS.gradientStart} />
                 <Text style={[
                   styles.formModeButtonText,
                   formMode === 'existing' && styles.formModeButtonTextActive
@@ -514,7 +546,7 @@ export default function Garde() {
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Nom</Text>
               <View style={styles.formInputContainer}>
-                <MaterialCommunityIcons name="paw" size={20} color="#8A2BE2" />
+                <MaterialCommunityIcons name="paw" size={20} color="#6A89A7" />
                 <TextInput
                   style={styles.formInput}
                   placeholder="Ex: Luna"
@@ -532,7 +564,7 @@ export default function Garde() {
                     <Picker
                       selectedValue={formData.espece}
                       onValueChange={handleSpeciesChange}
-                      dropdownIconColor="#8A2BE2"
+                      dropdownIconColor="#6A89A7"
                       style={styles.picker}
                     >
                       <Picker.Item label="Choisir une espèce" value="" />
@@ -550,7 +582,7 @@ export default function Garde() {
                         selectedValue={formData.race}
                         onValueChange={(value) => handleTextChange('race', value)}
                         enabled={formMode !== 'existing' || !selectedAdoptedAnimal}
-                        dropdownIconColor="#8A2BE2"
+                        dropdownIconColor="#6A89A7"
                         style={styles.picker}
                       >
                         <Picker.Item label="Sélectionner une race" value="" />
@@ -571,7 +603,7 @@ export default function Garde() {
                 <Text style={formData.date_naissance ? styles.datePickerText : styles.datePickerPlaceholder}>
                   {formData.date_naissance || 'JJ/MM/AAAA'}
                 </Text>
-                <MaterialCommunityIcons name="calendar" size={24} color="#8A2BE2" />
+                <MaterialCommunityIcons name="calendar" size={24} color="#6A89A7" />
               </TouchableOpacity>
               {showBirthDatePicker && (
                 <DateTimePicker
@@ -647,7 +679,7 @@ export default function Garde() {
                     />
                   ) : (
                     <View style={styles.photoUploadPlaceholder}>
-                      <MaterialCommunityIcons name="image-plus" size={32} color="#8A2BE2" />
+                      <MaterialCommunityIcons name="image-plus" size={32} color="#6A89A7" />
                       <Text style={styles.photoUploadText}>Ajouter une photo</Text>
                     </View>
                   )}
@@ -669,7 +701,7 @@ export default function Garde() {
                   <MaterialCommunityIcons 
                     name="home-heart" 
                     size={24} 
-                    color={formData.type_garde === 'Définitive' ? 'white' : '#8A2BE2'} 
+                    color={formData.type_garde === 'Définitive' ? 'white' : '#6A89A7'} 
                   />
                   <Text style={[
                     styles.typeGardeText,
@@ -688,7 +720,7 @@ export default function Garde() {
                   <MaterialCommunityIcons 
                     name="calendar-clock" 
                     size={24} 
-                    color={formData.type_garde === 'Temporaire' ? 'white' : '#8A2BE2'} 
+                    color={formData.type_garde === 'Temporaire' ? 'white' : '#6A89A7'} 
                   />
                   <Text style={[
                     styles.typeGardeText,
@@ -712,7 +744,7 @@ export default function Garde() {
                     <Text style={formData.date_reservation ? styles.datePickerText : styles.datePickerPlaceholder}>
                       {formData.date_reservation || 'JJ/MM/AAAA'}
                     </Text>
-                    <MaterialCommunityIcons name="calendar" size={24} color="#8A2BE2" />
+                    <MaterialCommunityIcons name="calendar" size={24} color="#6A89A7" />
                   </TouchableOpacity>
                   {showReservationDatePicker && (
                     <DateTimePicker
@@ -735,7 +767,7 @@ export default function Garde() {
                     <Text style={formData.date_fin ? styles.datePickerText : styles.datePickerPlaceholder}>
                       {formData.date_fin || 'JJ/MM/AAAA'}
                     </Text>
-                    <MaterialCommunityIcons name="calendar" size={24} color="#8A2BE2" />
+                    <MaterialCommunityIcons name="calendar" size={24} color="#6A89A7" />
                   </TouchableOpacity>
                   {showEndDatePicker && (
                     <DateTimePicker
@@ -803,9 +835,52 @@ export default function Garde() {
               </TouchableOpacity>
             </View>
           </View>
+          
         </Modal>
       </KeyboardAvoidingView>
+      <View style={styles.bottomNavigation}>
+  <TouchableOpacity 
+    style={styles.navButton}
+    onPress={() => navigation.navigate('Home')}
+  >
+    <View style={[styles.navIconContainer, { backgroundColor: COLORS.white }]}>
+      <Feather name="home" size={24} color={COLORS.darkGray} />
+    </View>
+    <Text style={[styles.navText, { color: COLORS.darkGray }]}>Accueil</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity 
+    style={styles.navButton}
+    onPress={() => navigation.navigate('Nosanimaux')}
+  >
+    <View style={[styles.navIconContainer, { backgroundColor: COLORS.white }]}>
+      <FontAwesome5 name="paw" size={20} color={COLORS.darkGray} />
+    </View>
+    <Text style={[styles.navText, { color: COLORS.darkGray }]}>Nos animaux</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity 
+    style={styles.navButton}
+    onPress={() => navigation.navigate('Garde')}
+  >
+    <View style={[styles.navIconContainer, { backgroundColor: COLORS.primary }]}>
+      <MaterialIcons name="pets" size={22} color={COLORS.darkGray} />
+    </View>
+    <Text style={[styles.navText, { color: COLORS.darkGray }]}>Garde</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity 
+    style={styles.navButton}
+    onPress={() => navigation.navigate('Boutique')}
+  >
+    <View style={[styles.navIconContainer, { backgroundColor: COLORS.white }]}>
+      <Feather name="shopping-bag" size={20} color={COLORS.darkGray} />
+    </View>
+    <Text style={[styles.navText, { color: COLORS.darkGray }]}>Boutique</Text>
+  </TouchableOpacity>
+</View>
     </SafeAreaView>
+    
   );
 };
 const styles = StyleSheet.create({
@@ -875,7 +950,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   formModeButtonActive: {
-    backgroundColor: '#8A2BE2',
+    backgroundColor: '#6A89A7',
   },
   formModeButtonContent: {
     flexDirection: 'row',
@@ -1055,19 +1130,19 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#8A2BE2',
+    borderColor: '#6A89A7',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   radioButtonSelected: {
-    borderColor: '#8A2BE2',
+    borderColor: '#6A89A7',
   },
   radioButtonInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#8A2BE2',
+    backgroundColor: '#6A89A7',
   },
   genderText: {
     fontSize: 16,
@@ -1103,14 +1178,14 @@ const styles = StyleSheet.create({
   },
   photoUploadText: {
     marginTop: 10,
-    color: '#8A2BE2',
+    color: '#6A89A7',
     fontSize: 16,
   },
-  uploadedPhoto: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 13,
-  },
+ uploadedPhoto: {
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+},
   typeGardeSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1127,12 +1202,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   typeGardeOptionSelected: {
-    backgroundColor: '#8A2BE2',
+    backgroundColor: '#6A89A7',
   },
   typeGardeText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#8A2BE2',
+    color: '#6A89A7',
     marginLeft: 8,
   },
   typeGardeTextSelected: {
@@ -1140,20 +1215,20 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flexDirection: 'row',
-    backgroundColor: '#8A2BE2',
+    backgroundColor: '#6A89A7',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 15,
-    shadowColor: '#8A2BE2',
+    shadowColor: '#6A89A7',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 4,
   },
   submitButtonDisabled: {
-    backgroundColor: '#C4B0ED',
+    backgroundColor: '#6A89A7',
     shadowOpacity: 0.1,
   },
   submitButtonLoadingContainer: {
@@ -1225,5 +1300,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-  }
+  },
+  // Add to styles.js
+  // —— Bottom Navigation
+  bottomNavigation: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1E6FA',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  navButton: {
+    alignItems: 'center',
+    padding: 5,
+    flex: 1,
+  },
+  navIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  navText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });

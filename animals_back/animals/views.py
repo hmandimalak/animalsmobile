@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from .models import Animal, DemandeEvenementMarche, DemandeGarde, DemandeAdoption, EvenementMarcheChien,Notification,Adoption
 from .serializers import AnimalSerializer, DemandeEvenementMarcheSerializer, DemandeGardeSerializer, DemandeAdoptionSerializer, EvenementMarcheChienSerializer,NotificationSerializer,AdoptionSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework import viewsets
 from django.db.models import Q
 from django.http import JsonResponse
@@ -207,7 +207,7 @@ class AnimalDetailView(APIView):
 
 # Gestion des demandes de garde
 class DemandeGardeListCreateView(APIView):
-    parser_classes = [MultiPartParser, FormParser]  # Add this line
+    parser_classes = [JSONParser, MultiPartParser, FormParser]  # <-- JSONParser ajouté
     permission_classes = [IsAuthenticated]
     def get(self, request):
         demandes = DemandeGarde.objects.all()
@@ -217,8 +217,9 @@ class DemandeGardeListCreateView(APIView):
     def post(self, request):
         serializer = DemandeGardeSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()  # No manual override needed
+            serializer.save()
             return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
     
 
 
@@ -555,3 +556,14 @@ class AnimalDetailedView(APIView):
             })
         except Animal.DoesNotExist:
             return Response({'error': 'Animal not found'}, status=404)
+class AdoptedCountView(APIView):
+    """
+    Returns the total number of adopted animals, based on entries in the Adoption table.
+    """
+    def get(self, request, pk=None, format=None):
+        # Count all Adoption records (or you could filter by pk if that makes sense)
+        count = Adoption.objects.count()
+        return Response(
+            {'adopted_count': count},
+            status=status.HTTP_200_OK
+        )

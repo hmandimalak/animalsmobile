@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-  Modal,
-  SafeAreaView,
-  TouchableOpacity
+  View, Text, FlatList, Modal, Image,
+  ActivityIndicator, SafeAreaView, TouchableOpacity, ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../android/app/api';
-
+import styles from '../components/styles';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const colors = {
-  primary: '#4DB6AC',  // Teal color from the image
+  primary: '#4DB6AC',
   background: '#F8F9FA',
   white: '#FFFFFF',
   text: '#333333',
@@ -23,53 +19,81 @@ const colors = {
   red: '#FF5252',
 };
 
+const COLORS = {
+  primary: '#00c2cb',
+  secondary: '#e6fcfd',
+  accent: '#00a8b0',
+  dark: '#1a1a1a',
+  white: '#FFFFFF',
+  gray: '#F8F9FA',
+  darkGray: '#6B7280',
+  lightGray: '#E5E7EB',
+  danger: '#EF4444',
+  success: '#10B981',
+  warning: '#F59E0B',
+  gradientStart: '#00c2cb',
+  gradientEnd: '#00a8b0',
+  cardBackground: '#FEFEFE',
+  shadowColor: 'rgba(0, 0, 0, 0.08)',
+};
 
-export default function TemporaireScreen() {
+export default function TemporaireScreen({ navigation }) {
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAnimal, setSelectedAnimal] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [favorites, setFavorites] = useState({});
 
-
   useEffect(() => {
-    api.fetchTemporaryAnimals()
-      .then(data => setAnimals(data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    loadFavorites();
+    fetchAnimals();
   }, []);
 
-  const handleAnimalClick = (animal) => {
-    setSelectedAnimal(animal);
-    setIsModalOpen(true);
+  const loadFavorites = async () => {
+    const stored = await AsyncStorage.getItem('favorites');
+    if (stored) setFavorites(JSON.parse(stored));
   };
 
-  const closeModal = () => {
-    setSelectedAnimal(null);
-    setIsModalOpen(false);
+  const toggleFavorite = async (id) => {
+    const updated = { ...favorites, [id]: !favorites[id] };
+    setFavorites(updated);
+    await AsyncStorage.setItem('favorites', JSON.stringify(updated));
   };
-   const formatAge = (dateString) => {
+
+  const fetchAnimals = async () => {
+    try {
+      const data = await api.fetchTemporaryAnimals();
+      setAnimals(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openModal = (animal) => {
+    setSelectedAnimal(animal);
+    setModalVisible(true);
+  };
+
+  const formatAge = (dateString) => {
     if (!dateString) return "Âge inconnu";
     
     const birthDate = new Date(dateString);
     const today = new Date();
     
-    // Calculate years and months
     let years = today.getFullYear() - birthDate.getFullYear();
     let months = today.getMonth() - birthDate.getMonth();
     
-    // Adjust for month difference
     if (today.getDate() < birthDate.getDate()) {
         months--;
     }
     
-    // Handle negative months
     if (months < 0) {
         years--;
         months += 12;
     }
     
-    // Build age string
     let ageParts = [];
     if (years > 0) {
         ageParts.push(`${years} an${years > 1 ? 's' : ''}`);
@@ -79,153 +103,165 @@ export default function TemporaireScreen() {
     }
     
     return ageParts.join(' et ') || 'Nouveau-né';
-};
-
-  const toggleFavorite = (id) => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color={colors.primary} style={{ flex: 1, justifyContent: 'center' }} />;
-  }
+  const renderCard = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => openModal(item)}
+    >
+      <View style={{ position: 'relative' }}>
+        <Image
+          source={
+            item.image
+              ? { uri: `http://192.168.0.132:8000${item.image}` }
+              : require('../assets/dogandcat.jpeg')
+          }
+          style={{ 
+            width: '100%', 
+            height: 230, 
+            borderTopLeftRadius: 24, 
+            borderTopRightRadius: 24 
+          }}
+          resizeMode="cover"
+        />
+      </View>
+
+      <View style={[styles.info, { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center' 
+      }]}>
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.name}>{item.nom}</Text>
+          </View>
+          <Text style={styles.breed}>{item.race}</Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          <Ionicons
+            name={item.sexe === 'M' ? 'male' : 'female'}
+            size={14}
+            color={item.sexe === 'M' ? '#8E54E9' : '#F18D9E'}
+            style={{ marginLeft: 6 }}
+          />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {animals.length ? (
-          animals.map(animal => (
-            <TouchableOpacity key={animal.id} onPress={() => handleAnimalClick(animal)} activeOpacity={0.8}>
-              {/* Replicate your AnimalCard UI here */}
-              <View style={{ marginBottom: 16, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.lightGray }}>
-                <Image
-                  source={animal.image ? { uri: `http://192.168.0.132:8000${animal.image}` } : require('../assets/dogandcat.jpeg')}
-                  style={{ width: '100%', height: 200 }}
-                />
-                <View style={{ padding: 12 }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{animal.nom}</Text>
-                  <Text style={{ color: colors.mediumGray }}>{animal.race}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text style={{ padding: 16 }}>Aucun animal en garderie temporaire.</Text>
-        )}
-      </ScrollView>
-
-      {/* Detail Modal */}
-      <Modal
-        visible={isModalOpen}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={closeModal}
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#8A2BE2', '#4B0082']}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
+        style={styles.header}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={closeModal}
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>🐾 Mes animaux en garde temporaire</Text>
+          <View style={{width: 24}} />
+        </View>
+      
+      </LinearGradient>
 
-          {selectedAnimal && (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Image
-                source={
-                  selectedAnimal.image
-                    ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
-                    : require('../assets/dogandcat.jpeg')
-                }
-                style={styles.detailImage}
-              />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#C5A8FF" />
+          <Text style={styles.loadingText}>Chargement des animaux...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={animals}
+          renderItem={renderCard}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={styles.grid}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="paw" size={60} color="#E8E5FF" />
+              <Text style={styles.emptyText}>Aucun animal trouvé</Text>
+              <Text style={styles.emptySubtext}>Revenez plus tard</Text>
+            </View>
+          }
+        />
+      )}
 
-              <TouchableOpacity
-                style={styles.detailFavoriteButton}
-                onPress={() => toggleFavorite(selectedAnimal.id)}
-              >
-                <Ionicons
-                  name={favorites[selectedAnimal.id] ? "heart" : "heart-outline"}
-                  size={24}
-                  color={favorites[selectedAnimal.id] ? colors.red : colors.white}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+            {selectedAnimal && (
+              <ScrollView contentContainerStyle={styles.modalContent}>
+                <Image
+                  source={
+                    selectedAnimal.image
+                      ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
+                      : require('../assets/dogandcat.jpeg')
+                  }
+                  style={styles.modalImage}
                 />
-              </TouchableOpacity>
-
-              <View style={styles.detailContent}>
-                <View style={styles.detailHeader}>
-                  <Text style={styles.detailName}>{selectedAnimal.nom}</Text>
-                  <View style={styles.detailBreedContainer}>
-                    <Text style={styles.detailBreed}>{selectedAnimal.race}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.detailInfoRow}>
-                  <View style={styles.detailInfoItem}>
-                    <Ionicons name="location-outline" size={16} color={colors.mediumGray} />
-                    <Text style={styles.detailInfoText}>
-                      {selectedAnimal.race || "New York"}
-                    </Text>
-                  </View>
-                  <View style={styles.detailInfoItem}>
-                    <Ionicons name="time-outline" size={16} color={colors.mediumGray} />
-                    <Text style={{ fontSize: 14 }}>
-                      {selectedAnimal.date_naissance ? formatAge(selectedAnimal.date_naissance) : 'Unknown'}
-                    </Text>
-                  </View>
-                  <View style={styles.detailInfoItem}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{selectedAnimal.nom}</Text>
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite(selectedAnimal.id)}
+                    style={styles.modalFavorite}
+                  >
                     <Ionicons
-                      name={selectedAnimal.sexe === 'M' ? "male-outline" : "female-outline"}
-                      size={16}
-                      color={colors.mediumGray}
+                      name={favorites[selectedAnimal.id] ? 'heart' : 'heart-outline'}
+                      size={24}
+                      color={favorites[selectedAnimal.id] ? '#FF6B8B' : '#C5A8FF'}
                     />
-                    <Text style={styles.detailInfoText}>
-                      {selectedAnimal.sexe === 'M' ? 'Mâle' : 'Femelle'}
-                    </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
-
-                <View style={styles.divider} />
-
-                <Text style={styles.aboutTitle}>À propos</Text>
-                <Text style={styles.detailDescription}>
-                  {selectedAnimal.description || "Ce petit trésor n'attend que vous pour partager sa vie ! Venez le rencontrer dans notre refuge."}
+                
+                <View style={styles.infoRow}>
+                  <Ionicons name="paw" size={18} color="#C5A8FF" />
+                  <Text style={styles.modalText}>{selectedAnimal.race}</Text>
+                </View>
+                
+                <View style={styles.infoRow}>
+                  <Ionicons name="transgender" size={18} color="#C5A8FF" />
+                  <Text style={styles.modalText}>
+                    {selectedAnimal.sexe === 'M' ? 'Mâle' : 'Femelle'}
+                  </Text>
+                </View>
+                
+                <View style={styles.infoRow}>
+                  <Ionicons name="calendar" size={18} color="#C5A8FF" />
+                  <Text style={styles.modalText}>
+                    {formatAge(selectedAnimal.date_naissance)}
+                  </Text>
+                </View>
+                
+                <Text style={styles.sectionTitle}>Description</Text>
+                <Text style={styles.modalDescription}>
+                  {selectedAnimal.description || "Un adorable compagnon qui cherche un foyer temporaire. Très joueur et affectueux."}
                 </Text>
-
-                <TouchableOpacity
-                  style={styles.adoptButton}
-                  onPress={() => {/* handle adoption */}}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.adoptButtonText}>Adopter</Text>
+                
+                <TouchableOpacity style={styles.adoptButton}>
+                  <Text style={styles.adoptButtonText}>Prendre en charge</Text>
                 </TouchableOpacity>
-              </View>
-            </ScrollView>
-          )}
-        </SafeAreaView>
+              </ScrollView>
+            )}
+          </View>
+        </View>
       </Modal>
+
+     
     </SafeAreaView>
   );
 }
-
-// Add your StyleSheet below
-const styles = {
-  modalContainer: { flex: 1, backgroundColor: colors.white },
-  closeButton: { padding: 16, backgroundColor: colors.primary },
-  detailImage: { width: '100%', height: 300 },
-  detailFavoriteButton: { position: 'absolute', top: 20, right: 20, padding: 8 },
-  detailContent: { padding: 16 },
-  detailHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  detailName: { fontSize: 24, fontWeight: 'bold' },
-  detailBreedContainer: { backgroundColor: colors.lightGray, borderRadius: 8, padding: 4 },
-  detailBreed: { fontSize: 14, fontWeight: '500' },
-  detailInfoRow: { flexDirection: 'row', marginVertical: 12 },
-  detailInfoItem: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
-  detailInfoText: { marginLeft: 4, fontSize: 14, color: colors.mediumGray },
-  divider: { height: 1, backgroundColor: colors.lightGray, marginVertical: 12 },
-  aboutTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
-  detailDescription: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  adoptButton: { backgroundColor: colors.success, padding: 12, borderRadius: 8, alignItems: 'center' },
-  adoptButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 }
-};

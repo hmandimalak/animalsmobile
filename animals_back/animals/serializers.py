@@ -39,43 +39,57 @@ class AnimalSerializer(serializers.ModelSerializer):
 
 
 class DemandeGardeSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
+    image = serializers.ImageField(required=False, allow_null=True)
     image_url = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = DemandeGarde
         fields = '__all__'
-        extra_kwargs = {'statut': {'required': False},
-                        'utilisateur': {'required': False}  # Add this line
-} 
+        extra_kwargs = {
+            'statut': {'required': False},
+            'utilisateur': {'required': False},
+            'date_reservation': {'required': False, 'allow_null': True},
+            'date_fin': {'required': False, 'allow_null': True}
+        }
+
+    def validate(self, data):
+        # Validation conditionnelle pour les gardes temporaires
+        if data.get('type_garde') == 'Temporaire':
+            if not data.get('date_reservation') or not data.get('date_fin'):
+                raise serializers.ValidationError(
+                    "Les dates de réservation et de fin sont obligatoires pour une garde temporaire"
+                )
+            
+            if data['date_reservation'] >= data['date_fin']:
+                raise serializers.ValidationError(
+                    "La date de fin doit être postérieure à la date de réservation"
+                )
+        else:
+            # Nettoyage des dates pour les gardes définitives
+            data.pop('date_reservation', None)
+            data.pop('date_fin', None)
         
+        return data
 
     def create(self, validated_data):
-        request = self.context['request']
-        utilisateur = request.user
-        validated_data['utilisateur'] = utilisateur
-
+        # Gestion de l'utilisateur authentifié
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['utilisateur'] = request.user
+        
+        # Gestion de l'image
         image = validated_data.pop('image', None)
-
-        # Create the instance with all validated data including date_reservation and date_fin
         instance = DemandeGarde.objects.create(**validated_data)
 
-        if not image and instance.animal.image:
-            instance.image.save(instance.animal.image.name, instance.animal.image.file, save=True)
+        # Si aucune image fournie, utiliser celle de l'animal
+        if not image and instance.animal and instance.animal.image:
+            instance.image = instance.animal.image
+            instance.save()
         elif image:
             instance.image = image
             instance.save()
 
         return instance
-
-    def init(self, *args, kwargs):
-        super().init(*args, **kwargs)
-        self.fields['type_garde'].choices = [('Temporaire', 'Temporaire'), ('Définitive', 'Définitive')]
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return f"{settings.MEDIA_URL}{obj.image.name}"
-        return None
 
     def get_image_url(self, obj):
         if obj.image:
@@ -134,5 +148,4 @@ class EvenementMarcheChienSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvenementMarcheChien
         fields = '__all__'
-        
-
+ 

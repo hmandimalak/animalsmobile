@@ -54,22 +54,23 @@ def produit_detail(request, produit_id):
 @api_view(['GET'])
 @login_required
 def get_panier(request):
-    """Get the current user's cart"""
     panier, created = Panier.objects.get_or_create(utilisateur=request.user)
-    articles = ArticlesPanier.objects.filter(panier=panier)
-
+    articles = ArticlesPanier.objects.filter(panier=panier).select_related('produit')
+    
     cart_items = []
     for article in articles:
+        produit = article.produit
+        effective_price = produit.prix_promotion if produit.is_discount_active else produit.prix
+        
         cart_items.append({
-            'id': article.produit.id,
-            'nom': article.produit.nom,
-            'prix': float(article.produit.prix),
-            'image': article.produit.image.url if article.produit.image else None,
+            'id': produit.id,
+            'nom': produit.nom,
+            'prix': float(effective_price),
+            'image': produit.image.url if produit.image else None,
             'quantity': article.quantite
         })
-
+    
     return Response(cart_items)
-
 
 @api_view(['POST'])
 @login_required
@@ -77,22 +78,17 @@ def ajouter_au_panier(request):
     data = json.loads(request.body)
     produit_id = data.get('produit_id')
     quantite = data.get('quantity', 1)
-
     produit = get_object_or_404(Produit, id=produit_id)
     panier, created = Panier.objects.get_or_create(utilisateur=request.user)
-
     article, created = ArticlesPanier.objects.get_or_create(
         panier=panier,
         produit=produit,
         defaults={'quantite': quantite}
     )
-
     if not created:
         article.quantite += quantite
         article.save()
-
     return Response({'status': 'success', 'message': 'Produit ajouté au panier'})
-
 
 
 
@@ -100,50 +96,89 @@ def ajouter_au_panier(request):
 @permission_classes([IsAuthenticated])
 def update_quantite(request, produit_id):
     """
-    Update the quantity of a product in the cart
+    Update the quantity of a product in the cart with enhanced error handling
     """
-    data = json.loads(request.body)
-    quantity = data.get('quantity')
-    
-    if quantity is None:
-        return Response({'error': 'Quantity is required'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Get or create user's cart
-    panier, created = Panier.objects.get_or_create(utilisateur=request.user)
-    
-    # Check if product exists
     try:
-        produit = Produit.objects.get(id=produit_id)
-    except Produit.DoesNotExist:
-        return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    # Get or create the cart item
-    if quantity > 0:
-        article, created = ArticlesPanier.objects.get_or_create(
-            panier=panier,
-            produit_id=produit_id,
-            defaults={'quantite': quantity}
+        # Parse request data
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response(
+                {'error': 'Invalid JSON format'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        quantity = data.get('quantity')
+        
+        # Validate quantity
+        if quantity is None:
+            return Response(
+                {'error': 'Quantity parameter is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not isinstance(quantity, (int, float)) or quantity < 0:
+            return Response(
+                {'error': 'Quantity must be a non-negative number'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get or create user's cart
+        panier, created = Panier.objects.get_or_create(utilisateur=request.user)
+        
+        # Check if product exists
+        try:
+            produit = Produit.objects.get(id=produit_id)
+        except Produit.DoesNotExist:
+            return Response(
+                {'error': 'Product not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Handle quantity update
+        quantity = int(quantity)  # Ensure integer quantity
+        
+        if quantity > 0:
+            article, created = ArticlesPanier.objects.get_or_create(
+                panier=panier,
+                produit_id=produit_id,
+                defaults={'quantite': quantity}
+            )
+            
+            if not created:
+                article.quantite = quantity
+                article.save()
+            
+            # Calculate effective price based on discount status
+            effective_price = float(produit.prix_promotion if produit.is_discount_active else produit.prix)
+            
+            return Response({
+                'success': True, 
+                'message': 'Cart updated',
+                'product': {
+                    'id': produit.id,
+                    'nom': produit.nom,
+                    'prix': effective_price,  # Use effective price
+                    'image': produit.image.url if produit.image else None,
+                    'quantity': quantity
+                }
+            })
+        else:
+            # Remove item if quantity is 0
+            ArticlesPanier.objects.filter(panier=panier, produit_id=produit_id).delete()
+            return Response({
+                'success': True, 
+                'message': 'Product removed from cart'
+            })
+            
+    except Exception as e:
+        # Log the error (in production, use proper logging)
+        print(f"Error in update_quantite: {str(e)}")
+        
+        return Response(
+            {'error': 'Internal server error', 'detail': str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-        
-        if not created:
-            article.quantite = quantity
-            article.save()
-        
-        return Response({
-            'success': True, 
-            'message': 'Cart updated',
-            'product': {
-                'id': produit.id,
-                'nom': produit.nom,
-                'prix': float(produit.prix),
-                'image': produit.image,
-                'quantity': quantity
-            }
-        })
-    else:
-        # If quantity is 0, make sure to remove it if it exists
-        ArticlesPanier.objects.filter(panier=panier, produit_id=produit_id).delete()
-        return Response({'success': True, 'message': 'Product removed from cart'})
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -230,7 +265,7 @@ def creer_commande(request):
             )
             
             # Reduce inventory
-            produit.stock -= article.quantite
+            
             produit.save()
 
         # Clear cart

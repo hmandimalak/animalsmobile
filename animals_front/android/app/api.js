@@ -52,8 +52,8 @@ const api = {
     return safeJsonParse(response);
   },
   
-  fetchOrders: async () => {
-    const response = await api.authenticatedFetch('/boutique/mes-commandes/');
+ fetchOrders: async () => {
+    const response = await authenticatedFetch('/boutique/mes-commandes/');
     return safeJsonParse(response);
   }
 };

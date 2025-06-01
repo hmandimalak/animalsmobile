@@ -15,15 +15,28 @@ import TemporaireScreen from '../screens/TemporaireScreen';
 import DefinitiveScreen from '../screens/DefinitiveScreen';
 import AdoptionsScreen from '../screens/AdoptionsScreen';
 import MescommandesScreen from '../screens/MescommandesScreen';
-
-
+import EditProfileScreen from '../screens/EditProfileScreen';
+import MarcheScreen from '../screens/MarcheScreen';
+import MarcheDetailScreen from '../screens/MarcheDetailScreen';
+import BlogScreen from '../screens/BlogScreen';
+import FAQScreen from '../screens/FAQScreen';
+import ContactformScreen from '../screens/ContactformScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Register">
+      
+      
+      <Stack.Navigator initialRouteName="Welcome">
+          <Stack.Screen 
+          name="Welcome" 
+          component={WelcomeScreen} 
+          options={{ headerShown: false }} 
+        />
         <Stack.Screen 
           name="Register" 
           component={RegisterScreen} 
@@ -94,6 +107,43 @@ export default function AppNavigator() {
           component={MescommandesScreen} 
           options={{ headerShown: false }} 
         />
+        <Stack.Screen 
+          name="EditProfile" 
+          component={EditProfileScreen} 
+          options={{ headerShown: false }} 
+        />
+         <Stack.Screen 
+          name="Marche" 
+          component={MarcheScreen} 
+          options={{ headerShown: false }} 
+        />
+         <Stack.Screen 
+          name="MarcheDetail" 
+          component={MarcheDetailScreen} 
+          options={{ headerShown: false }} 
+        />
+         <Stack.Screen 
+          name="Blog" 
+          component={BlogScreen} 
+          options={{ headerShown: false }} 
+        />
+          <Stack.Screen 
+          name="FAQ" 
+          component={FAQScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Contact" 
+          component={ContactformScreen} 
+          options={{ headerShown: false }} 
+        />
+          <Stack.Screen 
+          name="Notifications" 
+          component={NotificationsScreen} 
+          options={{ headerShown: false }} 
+        />
+
+
 
 
 
