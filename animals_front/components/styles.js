@@ -286,7 +286,7 @@ card: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F18D9E',
+    backgroundColor: '#BDDDFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -304,7 +304,7 @@ card: {
   modalTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#8E54E9',
+    color: '#6A89A7',
   },
   modalFavorite: {
     padding: 8,
@@ -321,23 +321,23 @@ card: {
   modalText: {
     fontSize: 18,
     marginLeft: 12,
-    color: '#5A5560',
+    color: '#6A89A7',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#8E54E9',
+    color: '#6A89A7',
     marginTop: 22,
     marginBottom: 10,
   },
   modalDescription: {
     fontSize: 16,
-    color: '#7D7A8C',
+    color: '#6A89A7',
     lineHeight: 26,
     marginBottom: 28,
   },
   adoptButton: {
-    backgroundColor: '#FFB4C1',
+    backgroundColor: '#6A89A7',
     paddingVertical: 18,
     borderRadius: 20,
     alignItems: 'center',
@@ -390,4 +390,39 @@ card: {
     fontSize: 12,
     fontWeight: '500',
   },
+  // Add to styles.js
+messageModal: {
+  backgroundColor: '#fff',
+  borderRadius: 20,
+  padding: 25,
+  width: '80%',
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+},
+messageModalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 15,
+},
+messageModalText: {
+  fontSize: 16,
+  textAlign: 'center',
+  marginBottom: 20,
+  color: '#333',
+},
+messageModalButton: {
+  paddingVertical: 12,
+  paddingHorizontal: 30,
+  borderRadius: 10,
+  marginTop: 10,
+},
+messageModalButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
 });

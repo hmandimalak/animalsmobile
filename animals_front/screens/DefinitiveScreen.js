@@ -17,24 +17,20 @@ const colors = {
   lightGray: '#EAEAEA',
   mediumGray: '#9E9E9E',
   red: '#FF5252',
+  green: '#4CAF50',
+  blue: '#2196F3'
 };
 
-const COLORS = {
-  primary: '#00c2cb',
-  secondary: '#e6fcfd',
-  accent: '#00a8b0',
-  dark: '#1a1a1a',
+   const COLORS = {
+  primary: '#6A89A7',     // Main brand color
+  secondary: '#BDDDFC',   // Light background/container
+  accent: '#88BDF2',      // Interactive elements
+  dark: '#384959',        // Dark text/headers
   white: '#FFFFFF',
-  gray: '#F8F9FA',
-  darkGray: '#6B7280',
-  lightGray: '#E5E7EB',
-  danger: '#EF4444',
-  success: '#10B981',
-  warning: '#F59E0B',
-  gradientStart: '#00c2cb',
-  gradientEnd: '#00a8b0',
-  cardBackground: '#FEFEFE',
-  shadowColor: 'rgba(0, 0, 0, 0.08)',
+  gray: '#718096',        // Lighter gray for secondary text
+  lightGray: '#E2E8F0',   // Very light gray for borders
+  text: '#4a4a4a',
+  cardBackground: '#FFFFFF',
 };
 
 export default function DefinitiveScreen({ navigation }) {
@@ -114,7 +110,7 @@ export default function DefinitiveScreen({ navigation }) {
         <Image
           source={
             item.image
-              ? { uri: `http://192.168.0.132:8000${item.image}` }
+              ? { uri: `http://192.168.0.188:8002${item.image}` }
               : require('../assets/dogandcat.jpeg')
           }
           style={{ 
@@ -154,7 +150,7 @@ export default function DefinitiveScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#8A2BE2', '#4B0082']}
+        colors={[COLORS.primary, COLORS.primary]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.header}
@@ -209,7 +205,7 @@ export default function DefinitiveScreen({ navigation }) {
                 <Image
                   source={
                     selectedAnimal.image
-                      ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
+                      ? { uri: `http://192.168.0.188:8002${selectedAnimal.image}` }
                       : require('../assets/dogandcat.jpeg')
                   }
                   style={styles.modalImage}

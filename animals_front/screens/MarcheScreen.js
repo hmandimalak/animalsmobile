@@ -30,7 +30,19 @@ export default function EvenementMarcheList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
-
+   const COLORS = {
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
   useEffect(() => {
     fetchEvenements();
   }, []);
@@ -39,7 +51,7 @@ export default function EvenementMarcheList() {
     try {
       setLoading(true);
       // Using regular fetch without authentication for public events
-      const response = await fetch('http://192.168.0.132:8000/api/animals/evenements/marche-chiens/', {
+      const response = await fetch('http://192.168.0.188:8002/api/animals/evenements/marche-chiens/', {
         method: 'GET',
       });
 
@@ -98,24 +110,23 @@ export default function EvenementMarcheList() {
         {/* Header section */}
         <View style={styles.headerSection}>
          <LinearGradient
-                           colors={['#8A2BE2', '#4B0082']}
-                           start={{x: 0, y: 0}}
-                           end={{x: 1, y: 0}}
-                           style={styles.header}
-                         >
-                           <View style={styles.headerContent}>
-                             <TouchableOpacity 
-                               onPress={() => navigation.goBack()}
-                               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                               style={styles.backButton}
-                             >
-                               <Ionicons name="arrow-back" size={24} color="white" />
-                             </TouchableOpacity>
-                             <Text style={styles.headerTitle}>Nos evenements de marche</Text>
-                             <View style={{width: 24}} />
-                           </View>
-                         
-                         </LinearGradient>
+        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Nos evenements de marche</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      </LinearGradient>
           {/* Animated icons would be replaced by static ones in React Native */}
           <View style={styles.iconsContainer}>
             <MaterialCommunityIcons name="dog" size={32} color={colors.primary} style={styles.iconSpacing} />
@@ -220,18 +231,19 @@ export default function EvenementMarcheList() {
 }
 
 // Colors palette
-const colors = {
-  primary: '#4F46E5',    // Indigo
-  secondary: '#F5F7FF',  // Light blue background
-  accent: '#818CF8',     // Lighter indigo
-  dark: '#1F2937',       // Dark text
-  light: '#F9FAFB',      // Light background
-  white: '#FFFFFF',
-  gray: '#E5E7EB',
-  grayLight: '#F3F4F6',
-  error: '#EF4444',      // Red for errors
-  shadow: 'rgba(0, 0, 0, 0.1)'
-};
+const colors ={
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
 
 // Styles
 const styles = StyleSheet.create({

@@ -119,7 +119,7 @@ export default function Garde() {
            return;
          }
       
-      const response = await authenticatedFetch("http://192.168.0.132:8000/api/animals/mes-adoptions/");
+      const response = await authenticatedFetch("http://192.168.0.188:8002/api/animals/mes-adoptions/");
       if (!response.ok) throw new Error('Échec de la récupération');
       return await response.json();
     } catch (error) {
@@ -330,7 +330,7 @@ const handleSubmit = async () => {
       console.log('🟢 POST garde existant:', payload);
 
       const resp = await fetch(
-        'http://192.168.0.132:8000/api/animals/demandes-garde/',
+        'http://192.168.0.188:8002/api/animals/demandes-garde/',
         {
           method: 'POST',
           headers: {
@@ -373,7 +373,7 @@ const handleSubmit = async () => {
 
       console.log('🟢 POST animal+garde nouveau …');
       const resp = await fetch(
-        'http://192.168.0.132:8000/api/animals/animaux/',
+        'http://192.168.0.188:8002/api/animals/animaux/',
         {
           method: 'POST',
           headers: {
@@ -864,7 +864,7 @@ const handleSubmit = async () => {
     onPress={() => navigation.navigate('Garde')}
   >
     <View style={[styles.navIconContainer, { backgroundColor: COLORS.primary }]}>
-      <MaterialIcons name="pets" size={22} color={COLORS.darkGray} />
+      <MaterialIcons name="pets" size={22} color={COLORS.white} />
     </View>
     <Text style={[styles.navText, { color: COLORS.darkGray }]}>Garde</Text>
   </TouchableOpacity>

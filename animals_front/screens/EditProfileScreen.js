@@ -1,5 +1,8 @@
 // screens/EditProfileScreen.js
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import * as Icons from 'react-native-feather';
+
 import {
   View,
   Text,
@@ -9,17 +12,21 @@ import {
   Image,
   Alert,
   StyleSheet,
-  Platform
+  SafeAreaView,
+  StatusBar
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker'; // For profile picture upload
+import * as ImagePicker from 'expo-image-picker';
 
+// Updated to match profile screen's blue palette
 const colors = {
-  primary: '#e899a3',
+  primary: '#6A89A7',     // Main brand color
+  secondary: '#BDDDFC',   // Light background/container
+  accent: '#88BDF2',      // Interactive elements
+  dark: '#384959',        // Dark text/headers
   white: '#FFFFFF',
-  dark: '#333333',
-  gray: '#777',
-  lightGray: '#eee'
+  gray: '#718096',        // Lighter gray for secondary text
+  lightGray: '#E2E8F0',   // Very light gray for borders
 };
 
 export default function EditProfileScreen({ navigation }) {
@@ -53,7 +60,7 @@ export default function EditProfileScreen({ navigation }) {
       const token = await AsyncStorage.getItem('access_token');
       if (!token) throw new Error('Authentication token not found');
 
-      const response = await fetch('http://192.168.0.132:8000/api/auth/profile/', {
+      const response = await fetch('http://192.168.0.188:8002/api/auth/profile/', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -150,7 +157,7 @@ export default function EditProfileScreen({ navigation }) {
         formData.append('new_password', passwords.newPassword);
       }
 
-      const apiResponse = await fetch('http://192.168.0.132:8000/api/auth/profile/update/', {
+      const apiResponse = await fetch('http://192.168.0.188:8002/api/auth/profile/update/', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -180,265 +187,326 @@ export default function EditProfileScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.dark }}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Edit Profile</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+
+      {/* Blue Header with Back Button and Title */}
+      <View style={styles.profileHeaderContainer}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.white} />
+          </TouchableOpacity>
+          
+          <Text style={styles.headerTitle}>Modifier le Profil</Text>
+          
+          {/* Empty View to balance the header */}
+          <View style={{ width: 24 }} />
+        </View>
       </View>
 
-      {/* Profile Picture */}
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
-          <Image
-            source={preview ? { uri: preview } :  require('../assets/dogandcat.jpeg')}
-            style={styles.profileImage}
-          />
-          <View style={styles.editIcon}>
-            <Text style={{ color: '#fff' }}>✎</Text>
+      <ScrollView style={styles.scrollContainer}>
+        {/* Profile Picture */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
+            {preview ? (
+              <Image source={{ uri: preview }} style={styles.profileImage} />
+            ) : (
+              <View style={styles.profileImagePlaceholder}>
+                <Icons.User width={60} height={60} color={colors.white} />
+              </View>
+            )}
+            <View style={styles.editIcon}>
+              <Ionicons name="camera" size={18} color={colors.white} />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.changePhotoText}>Appuyez pour changer la photo</Text>
+        </View>
+
+        {/* Form Fields */}
+        <View style={styles.formContainer}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Prénom</Text>
+            <TextInput
+              value={user.prenom}
+              onChangeText={(text) => handleChange('prenom', text)}
+              placeholder="Entrez votre prénom"
+              style={styles.input}
+            />
           </View>
-        </TouchableOpacity>
-        <Text style={styles.changePhotoText}>Tap to change photo</Text>
-      </View>
 
-      {/* Form Fields */}
-      <View style={styles.formContainer}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-            value={user.prenom}
-            onChangeText={(text) => handleChange('prenom', text)}
-            placeholder="Enter first name"
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput
-            value={user.nom}
-            onChangeText={(text) => handleChange('nom', text)}
-            placeholder="Enter last name"
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            value={user.email}
-            onChangeText={(text) => handleChange('email', text)}
-            placeholder="Enter email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            value={user.telephone}
-            onChangeText={(text) => handleChange('telephone', text)}
-            placeholder="+216 12 345 678"
-            keyboardType="phone-pad"
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Address</Text>
-          <TextInput
-            value={user.adresse}
-            onChangeText={(text) => handleChange('adresse', text)}
-            placeholder="Enter address"
-            style={styles.input}
-          />
-        </View>
-
-        {/* Change Password Button */}
-        <TouchableOpacity
-          onPress={() => setShowPasswordFields(!showPasswordFields)}
-          style={styles.passwordButton}
-        >
-          <Text style={styles.passwordButtonText}>Changer le mot de passe</Text>
-          <Text style={styles.lockIcon}>🔒</Text>
-        </TouchableOpacity>
-
-        {/* Password Fields - Conditional Rendering */}
-        {showPasswordFields && (
-          <View style={styles.passwordFields}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Current Password</Text>
-              <TextInput
-                value={passwords.currentPassword}
-                onChangeText={(text) => handlePasswordChange('currentPassword', text)}
-                secureTextEntry
-                placeholder="Current password"
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>New Password</Text>
-              <TextInput
-                value={passwords.newPassword}
-                onChangeText={(text) => handlePasswordChange('newPassword', text)}
-                secureTextEntry
-                placeholder="New password"
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm New Password</Text>
-              <TextInput
-                value={passwords.confirmPassword}
-                onChangeText={(text) => handlePasswordChange('confirmPassword', text)}
-                secureTextEntry
-                placeholder="Confirm new password"
-                style={styles.input}
-              />
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nom</Text>
+            <TextInput
+              value={user.nom}
+              onChangeText={(text) => handleChange('nom', text)}
+              placeholder="Entrez votre nom"
+              style={styles.input}
+            />
           </View>
-        )}
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={loading}
-          style={styles.submitButton}
-        >
-          {loading ? (
-            <Text style={styles.submitButtonText}>Saving...</Text>
-          ) : (
-            <Text style={styles.submitButtonText}>Save Changes</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              value={user.email}
+              onChangeText={(text) => handleChange('email', text)}
+              placeholder="Entrez votre email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Téléphone</Text>
+            <TextInput
+              value={user.telephone}
+              onChangeText={(text) => handleChange('telephone', text)}
+              placeholder="+216 12 345 678"
+              keyboardType="phone-pad"
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Adresse</Text>
+            <TextInput
+              value={user.adresse}
+              onChangeText={(text) => handleChange('adresse', text)}
+              placeholder="Entrez votre adresse"
+              style={styles.input}
+            />
+          </View>
+
+          {/* Change Password Button */}
+          <TouchableOpacity
+            onPress={() => setShowPasswordFields(!showPasswordFields)}
+            style={styles.passwordButton}
+          >
+            <Text style={styles.passwordButtonText}>Changer le mot de passe</Text>
+            <Ionicons name="lock-closed" size={20} color={colors.white} />
+          </TouchableOpacity>
+
+          {/* Password Fields - Conditional Rendering */}
+          {showPasswordFields && (
+            <View style={styles.passwordFields}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Mot de passe actuel</Text>
+                <TextInput
+                  value={passwords.currentPassword}
+                  onChangeText={(text) => handlePasswordChange('currentPassword', text)}
+                  secureTextEntry
+                  placeholder="Entrez votre mot de passe actuel"
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nouveau mot de passe</Text>
+                <TextInput
+                  value={passwords.newPassword}
+                  onChangeText={(text) => handlePasswordChange('newPassword', text)}
+                  secureTextEntry
+                  placeholder="Entrez votre nouveau mot de passe"
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Confirmer le mot de passe</Text>
+                <TextInput
+                  value={passwords.confirmPassword}
+                  onChangeText={(text) => handlePasswordChange('confirmPassword', text)}
+                  secureTextEntry
+                  placeholder="Confirmez votre nouveau mot de passe"
+                  style={styles.input}
+                />
+              </View>
+            </View>
           )}
-        </TouchableOpacity>
 
-        {/* Messages */}
-        {error && <Text style={styles.errorMessage}>{error}</Text>}
-        {success && <Text style={styles.successMessage}>{success}</Text>}
-      </View>
-    </ScrollView>
+          {/* Submit Button */}
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={loading}
+            style={[styles.submitButton, loading && styles.disabledButton]}
+          >
+            {loading ? (
+              <Text style={styles.submitButtonText}>Enregistrement...</Text>
+            ) : (
+              <Text style={styles.submitButtonText}>Enregistrer les modifications</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Messages */}
+          {error && <Text style={styles.errorMessage}>{error}</Text>}
+          {success && <Text style={styles.successMessage}>{success}</Text>}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
-    padding: 16
+    backgroundColor: colors.white,
   },
-  header: {
-    marginBottom: 20
+  scrollContainer: {
+    flex: 1,
   },
-  title: {
+  profileHeaderContainer: {
+    backgroundColor: colors.primary,
+    paddingTop: 10,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height:  3},
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 10
+    color: colors.white,
+  },
+  backButton: {
+    padding: 4,
   },
   section: {
     alignItems: 'center',
-    marginBottom: 24
+    marginVertical: 24,
   },
   imageContainer: {
     position: 'relative',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#eee',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 8,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    resizeMode: 'cover'
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    resizeMode: 'cover',
+  },
+  profileImagePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editIcon: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: colors.primary,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    backgroundColor: colors.dark,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   changePhotoText: {
     marginTop: 8,
-    color: colors.gray
+    color: colors.gray,
+    fontSize: 14,
   },
   formContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 16,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    elevation: 2,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    elevation: 2
+    shadowRadius: 4,
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    color: '#777',
-    marginBottom: 6
+    fontSize: 16,
+    color: colors.dark,
+    marginBottom: 8,
+    fontWeight: '500',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16
+    borderColor: colors.lightGray,
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: colors.white,
   },
   passwordButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#2463B0',
-    paddingVertical: 12,
+    backgroundColor: colors.accent,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    marginVertical: 16
+    borderRadius: 10,
+    marginVertical: 16,
   },
   passwordButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-  lockIcon: {
-    marginLeft: 8,
-    fontSize: 18,
-    color: '#fff'
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginRight: 8,
   },
   passwordFields: {
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8
+    backgroundColor: colors.secondary,
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 16,
   },
   submitButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center'
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  disabledButton: {
+    backgroundColor: colors.gray,
   },
   submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   errorMessage: {
-    color: 'red',
+    color: '#e74c3c',
     textAlign: 'center',
-    marginTop: 12
+    marginTop: 16,
+    fontSize: 16,
   },
   successMessage: {
-    color: 'green',
+    color: '#27ae60',
     textAlign: 'center',
-    marginTop: 12
-  }
+    marginTop: 16,
+    fontSize: 16,
+  },
 });

@@ -179,9 +179,9 @@ export default StyleSheet.create({
   },
 
   // Animal Type Selection
-  animalTypeContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+ animalTypeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
 
   animalTypeRow: {
@@ -189,9 +189,14 @@ export default StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
-
+  searchButtonContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
   animalTypeList: {
     paddingHorizontal: 5,
+    paddingRight: 16,
     gap: 10,
   },
 
@@ -217,6 +222,9 @@ export default StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 25,
     shadowColor: COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -228,6 +236,7 @@ export default StyleSheet.create({
 
   searchButtonText: {
     color: COLORS.white,
+    fontWeight: '600',
     fontWeight: 'bold',
     fontSize: 14,
   },

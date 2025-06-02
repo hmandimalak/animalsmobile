@@ -25,7 +25,7 @@ export default function WelcomeScreen() {
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <MaterialCommunityIcons name="paw" size={80} color="#FF8C42" />
+          <MaterialCommunityIcons name="paw" size={80} color="#6A89A7" />
         </View>
         
         {/* App Name */}
@@ -70,7 +70,7 @@ const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5E6',
+    backgroundColor: '#BDDDFC',
     position: 'relative',
     justifyContent: 'center',
   },
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.7,
   },
   decorativeCircle2: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.5,
   },
   decorativeCircle3: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     width: 15,
     height: 15,
     borderRadius: 7.5,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.4,
   },
   decorativeCircle4: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.6,
   },
   content: {
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#FF8C42',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 10,
     textShadowColor: 'rgba(255, 140, 66, 0.3)',
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 18,
-    color: '#8B4513',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 30,
     fontWeight: '500',
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   button: {
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 30,
@@ -197,12 +197,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: '#8B4513',
+    color: '#384959',
     fontSize: 16,
     opacity: 0.9,
   },
   footerLink: {
-    color: '#FF8C42',
+    color: '#88BDF2',
     fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 5,

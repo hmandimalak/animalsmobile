@@ -22,10 +22,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 // Custom Colors
 const colors = {
-  primary: '#FF6B6B',
+  primary: '#6A89A7',
   primaryDark: '#FF5252',
   primaryLight: '#FFA5A5',
-  secondary: '#F3F4F6',
+  secondary: '#BDDDFC',
   secondaryDark: '#E5E7EB',
   textDark: '#1F2937',
   textMedium: '#4B5563',
@@ -35,7 +35,6 @@ const colors = {
   blue: '#3B82F6',
   green: '#10B981',
   yellow: '#D97706',
-  purple: '#8B5CF6',
   gray: '#6B7280',
   error: '#EF4444',
   blueLight: '#DBEAFE',
@@ -531,7 +530,7 @@ export default function BlogPage() {
     const fetchBlogData = async () => {
       try {
         // Using authenticatedFetch from your imports
-        const sectionsResponse = await authenticatedFetch('http://192.168.0.132:8000/api/blog-content/');
+        const sectionsResponse = await authenticatedFetch('http://192.168.0.188:8002/api/blog-content/');
         
         if (!sectionsResponse.ok) throw new Error('Failed to fetch blog sections');
         
@@ -541,7 +540,7 @@ export default function BlogPage() {
         const activeSections = sectionsData.filter(section => section.is_active);
         setSections(activeSections);
         
-        const postsResponse = await authenticatedFetch('http://192.168.0.132:8000/api/blog-posts/');
+        const postsResponse = await authenticatedFetch('http://192.168.0.188:8002/api/blog-posts/');
         if (!postsResponse.ok) throw new Error('Failed to fetch blog posts');
         
         const postsData = await postsResponse.json();
@@ -621,7 +620,7 @@ export default function BlogPage() {
         {/* Blog Header */}
         <View style={styles.header}>
           <LinearGradient
-                    colors={['#8A2BE2', '#4B0082']}
+                    colors={['#6A89A7', '#6A89A7']}
                     start={{x: 0, y: 0}}
                     end={{x: 1, y: 0}}
                     style={styles.header}
@@ -634,12 +633,10 @@ export default function BlogPage() {
                       >
                         <Ionicons name="arrow-back" size={24} color="white" />
                       </TouchableOpacity>
-                      <Text style={styles.headerTitle}>Notre blohg</Text>
+                      <Text style={styles.headerTitle}>Notre blog</Text>
                       <View style={{width: 24}} />
                     </View>
-                    <Text style={styles.headerSubtitle}>
-                       Découvrez les dernières actualités, conseils et histoires
-                    </Text>
+                    
                   </LinearGradient>
           {/* Search Bar */}
           <View style={styles.searchContainer}>

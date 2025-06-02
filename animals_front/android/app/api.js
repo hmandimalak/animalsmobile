@@ -1,7 +1,7 @@
 // api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://192.168.0.132:8000/api';
+const API_BASE_URL = 'http://192.168.0.188:8002/api';
 
 const safeJsonParse = async (response) => {
   if (!response.ok) {

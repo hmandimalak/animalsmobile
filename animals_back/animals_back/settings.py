@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # Define BASE_DIR
 
 # settings.py
 MEDIA_URL = '/media/'
-MEDIA_ROOT ='C:/Users/Dell/Desktop/pfe/media'
+MEDIA_ROOT ='D:\PFE\media'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

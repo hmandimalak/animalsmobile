@@ -17,25 +17,23 @@ const colors = {
   lightGray: '#EAEAEA',
   mediumGray: '#9E9E9E',
   red: '#FF5252',
+  green: '#4CAF50',
+  blue: '#2196F3'
 };
 
-const COLORS = {
-  primary: '#00c2cb',
-  secondary: '#e6fcfd',
-  accent: '#00a8b0',
-  dark: '#1a1a1a',
-  white: '#FFFFFF',
-  gray: '#F8F9FA',
-  darkGray: '#6B7280',
-  lightGray: '#E5E7EB',
-  danger: '#EF4444',
-  success: '#10B981',
-  warning: '#F59E0B',
-  gradientStart: '#00c2cb',
-  gradientEnd: '#00a8b0',
-  cardBackground: '#FEFEFE',
-  shadowColor: 'rgba(0, 0, 0, 0.08)',
-};
+   const COLORS = {
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
 
 export default function TemporaireScreen({ navigation }) {
   const [animals, setAnimals] = useState([]);
@@ -114,7 +112,7 @@ export default function TemporaireScreen({ navigation }) {
         <Image
           source={
             item.image
-              ? { uri: `http://192.168.0.132:8000${item.image}` }
+              ? { uri: `http://192.168.0.188:8002${item.image}` }
               : require('../assets/dogandcat.jpeg')
           }
           style={{ 
@@ -154,24 +152,24 @@ export default function TemporaireScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#8A2BE2', '#4B0082']}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 0}}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()}
-            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>🐾 Mes animaux en garde temporaire</Text>
-          <View style={{width: 24}} />
-        </View>
-      
-      </LinearGradient>
+              colors={[COLORS.primary, COLORS.primary]}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.header}
+            >
+              <View style={styles.headerContent}>
+                <TouchableOpacity 
+                  onPress={() => navigation.goBack()}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  style={styles.backButton}
+                >
+                  <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>🐾 Mes animaux en garde définitive</Text>
+                <View style={{width: 24}} />
+              </View>
+            
+            </LinearGradient>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -187,7 +185,7 @@ export default function TemporaireScreen({ navigation }) {
           contentContainerStyle={styles.grid}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="paw" size={60} color="#E8E5FF" />
+              <Ionicons name="paw" size={60} color="#BDDDFC" />
               <Text style={styles.emptyText}>Aucun animal trouvé</Text>
               <Text style={styles.emptySubtext}>Revenez plus tard</Text>
             </View>
@@ -209,7 +207,7 @@ export default function TemporaireScreen({ navigation }) {
                 <Image
                   source={
                     selectedAnimal.image
-                      ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
+                      ? { uri: `http://192.168.0.188:8002${selectedAnimal.image}` }
                       : require('../assets/dogandcat.jpeg')
                   }
                   style={styles.modalImage}
@@ -229,19 +227,19 @@ export default function TemporaireScreen({ navigation }) {
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="paw" size={18} color="#C5A8FF" />
+                  <Ionicons name="paw" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>{selectedAnimal.race}</Text>
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="transgender" size={18} color="#C5A8FF" />
+                  <Ionicons name="transgender" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>
                     {selectedAnimal.sexe === 'M' ? 'Mâle' : 'Femelle'}
                   </Text>
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="calendar" size={18} color="#C5A8FF" />
+                  <Ionicons name="calendar" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>
                     {formatAge(selectedAnimal.date_naissance)}
                   </Text>

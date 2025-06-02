@@ -27,7 +27,7 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const API_URL = 'http://192.168.0.132:8000/api/auth/login/';
+      const API_URL = 'http://192.168.0.188:8002/api/auth/login/';
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,7 +105,7 @@ export default function LoginForm() {
             <View style={styles.inputContainer}>
               <TextInput
                 placeholder="Salut@gmail.com"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 value={formData.email}
                 onChangeText={(text) => handleChange('email', text)}
                 style={styles.input}
@@ -120,7 +120,7 @@ export default function LoginForm() {
             <View style={styles.inputContainer}>
               <TextInput
                 placeholder="••••••••"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 value={formData.password}
                 onChangeText={(text) => handleChange('password', text)}
                 style={styles.input}
@@ -177,7 +177,7 @@ export default function LoginForm() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5E6',
+    backgroundColor: '#BDDDFC',
     position: 'relative',
   },
   decorativeCircle1: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.7,
   },
   decorativeCircle2: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.5,
   },
   decorativeCircle3: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     width: 15,
     height: 15,
     borderRadius: 7.5,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.4,
   },
   decorativeCircle4: {
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.6,
   },
   scrollContent: {
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 20,
-    color: '#2D2D2D',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 5,
     fontWeight: '400',
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#FF8C42',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 20,
     textShadowColor: 'rgba(255, 140, 66, 0.3)',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   loginCard: {
-    backgroundColor: '#D2691E',
+    backgroundColor: '#FFFFFF',
     borderRadius: 25,
     padding: 30,
     shadowColor: '#000',
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   signInTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#6A89A7',
     textAlign: 'left',
     marginBottom: 25,
   },
@@ -286,14 +286,14 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#6A89A7',
     marginBottom: 8,
     fontWeight: '600',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4C2A1',
+    backgroundColor: '#BDDDFC',
     borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#8B4513',
+    color: '#384959',
     fontWeight: '500',
   },
   passwordToggle: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   button: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#6A89A7',
     paddingVertical: 16,
     borderRadius: 15,
     alignItems: 'center',
@@ -351,10 +351,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF4444',
+    borderLeftColor: '#6A89A7',
   },
   error: {
-    color: '#CC0000',
+    color: '#6A89A7',
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -365,12 +365,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   footerText: {
-    color: '#FFFFFF',
+    color: '#6A89A7',
     fontSize: 14,
     opacity: 0.9,
   },
   footerLink: {
-    color: '#FFFFFF',
+    color: '#6A89A7',
     fontWeight: 'bold',
     fontSize: 14,
     textDecorationLine: 'underline',

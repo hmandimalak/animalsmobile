@@ -30,7 +30,7 @@ const BoutiqueScreen = () => {
   const [wishlist, setWishlist] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigation = useNavigation();
-  const API_BASE_URL = 'http://192.168.0.132:8000';
+  const API_BASE_URL = 'http://192.168.0.188:8002';
     const COLORS = {
     primary: '#6A89A7',    // Soft blue (main color)
     secondary: '#BDDDFC',   // Light sky blue
@@ -609,7 +609,7 @@ return (
           onPress={() => navigation.navigate('Boutique')}
         >
           <View style={[styles.navIconContainer, { backgroundColor: COLORS.primary }]}>
-            <Feather name="shopping-bag" size={20} color={COLORS.darkGray} />
+            <Feather name="shopping-bag" size={20} color={COLORS.white} />
           </View>
           <Text style={[styles.navText, { color: COLORS.darkGray }]}>Boutique</Text>
         </TouchableOpacity>

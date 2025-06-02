@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet
 } from 'react-native';
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://192.168.0.132:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://192.168.0.188:8002';
 
 // Import your API service
 import api from '../android/app/api';
@@ -35,15 +35,15 @@ const getImageUrl = (imagePath) => {
 };
 
 const colors = {
-  primary: '#4DB6AC',
-  background: '#F8F9FA',
+  primary: '#6A89A7',     // Main brand color
+  secondary: '#BDDDFC',   // Light background/container
+  accent: '#88BDF2',      // Interactive elements
+  dark: '#384959',        // Dark text/headers
   white: '#FFFFFF',
-  text: '#333333',
-  lightGray: '#EAEAEA',
-  mediumGray: '#9E9E9E',
-  red: '#FF5252',
-  green: '#4CAF50',
-  blue: '#2196F3'
+  gray: '#718096',        // Lighter gray for secondary text
+  lightGray: '#E2E8F0',   // Very light gray for borders
+  text: '#4a4a4a',
+  cardBackground: '#FFFFFF',
 };
 
 export default function CommandesScreen() {
@@ -78,7 +78,7 @@ export default function CommandesScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
      <LinearGradient
-        colors={['#8A2BE2', '#4B0082']}
+        colors={['#6A89A7', '#6A89A7']}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.header}

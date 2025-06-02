@@ -10,14 +10,22 @@ import styles from '../components/styles';
 import FilterSection from '../components/FilterSection';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const API_URL = 'http://192.168.0.132:8000/api';
+const API_URL = 'http://192.168.0.188:8002/api';
 
 export default function NosAnimaux() {
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState(null);
+  const [token, setToken] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [favorites, setFavorites] = useState({});
+  const [adopting, setAdopting] = useState(false); // New state for adoption loading
+  const [messageModal, setMessageModal] = useState(false); // New state for message modal
+  const [modalContent, setModalContent] = useState({ // New state for modal content
+    title: '',
+    message: '',
+    type: 'success' // 'success' or 'error'
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [animalType, setAnimalType] = useState('');
@@ -44,6 +52,24 @@ export default function NosAnimaux() {
     setFavorites(updated);
     await AsyncStorage.setItem('favorites', JSON.stringify(updated));
   };
+  
+  // Get auth token from storage
+  const getAuthToken = async () => {
+  try {
+    const token = await AsyncStorage.getItem('access_token');
+    console.log("[DEBUG] Retrieved token:", token ? "Token exists" : "No token");
+    
+    if (token) {
+      return `Bearer ${token}`;
+    } else {
+      console.log("[DEBUG] No token found in storage");
+      return null;
+    }
+  } catch (error) {
+    console.error("[ERROR] Error retrieving auth token:", error);
+    return null;
+  }
+};
   
   // Updated to match web application's blue palette
   const COLORS = {
@@ -79,6 +105,89 @@ export default function NosAnimaux() {
     setModalVisible(true);
   };
 
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleAdopt = async () => {
+    setAdopting(true);
+    try {
+     const token = await getAuthToken();
+      
+       if (!token) {
+            // 🔴 Pas de token → on arrête le loading, on alerte, on redirige
+            setLoading(false);
+            Alert.alert(
+              'Accès refusé',
+              'Veuillez vous identifier.',
+              [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+            );
+            return;
+          }
+      
+      
+      const requestBody = {
+        animal: selectedAnimal.id 
+      };
+
+      const response = await fetch(`http://192.168.0.188:8002/api/animals/demandes-adoption/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        closeModal();
+        setTimeout(() => {
+          setModalContent({
+            title: 'Succès!',
+            message: 'Demande d\'adoption envoyée! Nous vous contacterons sous 48h.',
+            type: 'success'
+          });
+          setMessageModal(true);
+        }, 300);
+      } else {
+        const errorData = await response.json();
+        
+        if (response.status === 401) {
+          // Token expired
+          closeModal();
+          setTimeout(() => {
+            setModalContent({
+              title: 'Session Expirée',
+              message: 'Votre session a expiré. Veuillez vous reconnecter.',
+              type: 'error'
+            });
+            setMessageModal(true);
+          }, 300);
+        } else if (response.status === 400 && errorData.detail?.includes("existe déjà")) {
+          // Already has adoption request
+          closeModal();
+          setTimeout(() => {
+            setModalContent({
+              title: 'Demande Existante',
+              message: 'Vous avez déjà une demande d\'adoption en cours pour cet animal.',
+              type: 'error'
+            });
+            setMessageModal(true);
+          }, 300);
+        } else {
+          // Other errors
+          Alert.alert('Erreur', errorData.detail || 'Une erreur est survenue');
+        }
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      Alert.alert('Erreur', 'Problème de connexion. Vérifiez votre internet.');
+    } finally {
+      setAdopting(false);
+    }
+  };
+
 const renderCard = ({ item }) => (
   <TouchableOpacity 
     style={[styles.card, { backgroundColor: COLORS.white }]} 
@@ -88,7 +197,7 @@ const renderCard = ({ item }) => (
       <Image
         source={
           item.image
-            ? { uri: `http://192.168.0.132:8000${item.image}` }
+            ? { uri: `http://192.168.0.188:8002${item.image}` }
             : require('../assets/dogandcat.jpeg')
         }
         style={{ width: '100%', height: 230, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
@@ -119,29 +228,67 @@ const renderCard = ({ item }) => (
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: COLORS.white }]}>
+      {/* Message Modal */}
+      <Modal
+        visible={messageModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMessageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[
+            styles.messageModal, 
+            { backgroundColor: modalContent.type === 'success' ? '#e6f7ee' : '#fde8e8' }
+          ]}>
+            <Text style={[
+              styles.messageModalTitle, 
+              { color: modalContent.type === 'success' ? '#27ae60' : '#e74c3c' }
+            ]}>
+              {modalContent.title}
+            </Text>
+            <Text style={styles.messageModalText}>{modalContent.message}</Text>
+            
+            <TouchableOpacity
+              style={[
+                styles.messageModalButton,
+                { backgroundColor: modalContent.type === 'success' ? '#27ae60' : '#e74c3c' }
+              ]}
+              onPress={() => {
+                setMessageModal(false);
+                if (modalContent.type === 'error') {
+                  navigation.navigate('Login');
+                }
+              }}
+            >
+              <Text style={styles.messageModalButtonText}>
+                {modalContent.type === 'error' ? 'Se connecter' : 'OK'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
        
-          <LinearGradient
-                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.header}
-                >
-                  <View style={styles.headerContent}>
-                    <TouchableOpacity 
-                      onPress={() => navigation.goBack()}
-                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                      style={styles.backButton}
-                    >
-                      <Ionicons name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>🐾 Nos Petits Compagnons</Text>
-                    <View style={{width: 24}} />
-                  </View>
-                  <Text style={styles.headerSubtitle}>
-                    Trouvez votre nouveau meilleur ami
-                  </Text>
-                </LinearGradient>
-      
+      <LinearGradient
+        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>🐾 Nos Petits Compagnons</Text>
+          <View style={{width: 24}} />
+        </View>
+        <Text style={styles.headerSubtitle}>
+          Trouvez votre nouveau meilleur ami
+        </Text>
+      </LinearGradient>
 
       <View style={styles.searchContainer}>
         <FilterSection
@@ -194,7 +341,7 @@ const renderCard = ({ item }) => (
                 <Image
                   source={
                     selectedAnimal.image
-                      ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
+                      ? { uri: `http://192.168.0.188:8002${selectedAnimal.image}` }
                       : require('../assets/dogandcat.jpeg')
                   }
                   style={styles.modalImage}
@@ -237,8 +384,14 @@ const renderCard = ({ item }) => (
                 
                 <TouchableOpacity 
                   style={[styles.adoptButton, { backgroundColor: COLORS.primary }]}
+                  onPress={handleAdopt}
+                  disabled={adopting}
                 >
-                  <Text style={styles.adoptButtonText}>Adopter {selectedAnimal.nom}</Text>
+                  {adopting ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.adoptButtonText}>Adopter {selectedAnimal.nom}</Text>
+                  )}
                 </TouchableOpacity>
               </ScrollView>
             )}

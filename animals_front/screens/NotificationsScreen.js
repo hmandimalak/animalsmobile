@@ -29,8 +29,8 @@ const fetchNotifications = async (token) => {
     
     // Make parallel requests to both endpoints for better performance
     const [animalRes, boutiqueRes] = await Promise.all([
-      fetch("http://192.168.0.132:8000/api/animals/notifications/", { headers }),
-      fetch("http://192.168.0.132:8000/api/boutique/notifications/", { headers }),
+      fetch("http://192.168.0.188:8002/api/animals/notifications/", { headers }),
+      fetch("http://192.168.0.188:8002/api/boutique/notifications/", { headers }),
     ]);
     
     // Helper function to safely parse API responses
@@ -62,7 +62,7 @@ const fetchNotifications = async (token) => {
 // Function to mark a notification as read
 const markAsRead = async (notifId, type, token) => {
   try {
-    const url = `http://192.168.0.132:8000/api/${type}/notifications/${notifId}/read/`;
+    const url = `http://192.168.0.188:8002/api/${type}/notifications/${notifId}/read/`;
     await fetch(url, {
       method: "PUT",
       headers: { Authorization: token },

@@ -43,7 +43,7 @@ const ContactPage = ({ visible, onClose }) => {
       }
 
       try {
-        const response = await fetch('http://192.168.0.132:8000/api/auth/user/', {
+        const response = await fetch('http://192.168.0.188:8002/api/auth/user/', {
           method: 'GET',
           headers: {
             Authorization: token,
@@ -78,7 +78,7 @@ const ContactPage = ({ visible, onClose }) => {
 
     try {
       const token = await getAuthToken();
-      const response = await fetch('http://192.168.0.132:8000/api/auth/contact/', {
+      const response = await fetch('http://192.168.0.188:8002/api/auth/contact/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

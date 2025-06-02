@@ -26,14 +26,18 @@ export default function RegisterScreen  () {
     role: 'Proprietaire', // Default role as required by your Django model
   });
    const colors = {
-  primary: '#4DB6AC',  // Teal color from the image
-  background: '#F8F9FA',
-  white: '#FFFFFF',
-  text: '#333333',
-  lightGray: '#EAEAEA',
-  mediumGray: '#9E9E9E',
-  red: '#FF5252',
-};
+    primary: '#6A89A7',    // Soft blue (main color)
+    secondary: '#BDDDFC',   // Light sky blue
+    accent: '#88BDF2',      // Sky blue
+    dark: '#384959',        // Dark blue-gray
+    white: '#FFFFFF',
+    gray: '#F0F0F0',
+    darkGray: '#718096',    // Lighter blue-gray
+    lightGray: '#e6e6e6',
+    danger: '#ff6b6b',
+    gradientStart: '#6A89A7',
+    gradientEnd: '#88BDF2',
+  };
   
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -157,7 +161,7 @@ export default function RegisterScreen  () {
         console.log(`${key}:`, value);
       }
       
-      const response = await fetch('http://192.168.0.132:8000/api/auth/register/', {
+      const response = await fetch('http://192.168.0.188:8002/api/auth/register/', {
         method: 'POST',
         body: formDataToSend,
         headers: {
@@ -237,7 +241,7 @@ export default function RegisterScreen  () {
               <TextInput
                 style={styles.input}
                 placeholder=" Nom"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 value={formData.nom}
                 onChangeText={(text) => handleChange('nom', text)}
               />
@@ -249,7 +253,7 @@ export default function RegisterScreen  () {
               <TextInput
                 style={styles.input}
                 placeholder="Prenom"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 value={formData.prenom}
                 onChangeText={(text) => handleChange('prenom', text)}
               />
@@ -265,7 +269,7 @@ export default function RegisterScreen  () {
             <TextInput
               style={styles.input}
               placeholder="salut@gmail.com"
-              placeholderTextColor="#8B5A3C"
+              placeholderTextColor="#384959"
               keyboardType="email-address"
               autoCapitalize="none"
               value={formData.email}
@@ -302,7 +306,7 @@ export default function RegisterScreen  () {
             <TextInput
               style={styles.input}
               placeholder="Addresse"
-              placeholderTextColor="#8B5A3C"
+              placeholderTextColor="#384959"
               value={formData.adresse}
               onChangeText={(text) => handleChange('adresse', text)}
             />
@@ -311,14 +315,13 @@ export default function RegisterScreen  () {
           
           {/* Password Inputs */}
           <Text style={styles.inputLabel}>Mot de passe</Text>
-          <View style={styles.inputRow}>
              
-            <View style={[styles.inputContainer, styles.halfInput, errors.password && styles.errorInput]}>
+            <View style={[styles.inputContainer, errors.password && styles.errorInput]}>
               <Text style={styles.inputEmoji}>🔒</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Mot de passe"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 secureTextEntry={!showPassword}
                 value={formData.password}
                 onChangeText={(text) => handleChange('password', text)}
@@ -330,19 +333,18 @@ export default function RegisterScreen  () {
               </TouchableOpacity>
             </View>
             
-            <View style={[styles.inputContainer, styles.halfInput, errors.confirmPassword && styles.errorInput]}>
+            <View style={[styles.inputContainer, errors.confirmPassword && styles.errorInput]}>
               
               <Text style={styles.inputEmoji}>🔐</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Confirmé Mot de passe"
-                placeholderTextColor="#8B5A3C"
+                placeholderTextColor="#384959"
                 secureTextEntry={!showPassword}
                 value={formData.confirmPassword}
                 onChangeText={(text) => handleChange('confirmPassword', text)}
               />
             </View>
-          </View>
           {errors.password && <Text style={styles.errorText}>❌ {errors.password}</Text>}
           {errors.confirmPassword && <Text style={styles.errorText}>❌ {errors.confirmPassword}</Text>}
                {/* Profile Image Upload */}
@@ -398,7 +400,7 @@ export default function RegisterScreen  () {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5E6',
+    backgroundColor: '#BDDDFC',
     position: 'relative',
   },
   decorativeCircle1: {
@@ -408,7 +410,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.7,
   },
   decorativeCircle2: {
@@ -418,7 +420,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.5,
   },
   decorativeCircle3: {
@@ -428,7 +430,7 @@ const styles = StyleSheet.create({
     width: 15,
     height: 15,
     borderRadius: 7.5,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.4,
   },
   decorativeCircle4: {
@@ -438,7 +440,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.6,
   },
   decorativeCircle5: {
@@ -448,7 +450,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.3,
   },
   decorativeCircle6: {
@@ -458,7 +460,7 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     borderRadius: 12.5,
-    backgroundColor: '#FF8C42',
+    backgroundColor: '#6A89A7',
     opacity: 0.4,
   },
   scrollContainer: {
@@ -472,7 +474,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 20,
-    color: '#2D2D2D',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 5,
     fontWeight: '400',
@@ -480,7 +482,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#FF8C42',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 20,
     textShadowColor: 'rgba(255, 140, 66, 0.3)',
@@ -505,7 +507,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   formCard: {
-    backgroundColor: '#D2691E',
+    backgroundColor: '#FFFFFF',
     borderRadius: 25,
     padding: 25,
     shadowColor: '#000',
@@ -517,13 +519,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#6A89A7',
     textAlign: 'center',
     marginBottom: 25,
     opacity: 0.9,
@@ -539,12 +541,12 @@ imageUploadContainer: {
     height: 70,
     width: '48%',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#6A89A7',
     borderStyle: 'dashed',
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F4C2A1',
+    backgroundColor: '#BDDDFC',
   },
   profileImage: {
     width: '100%',
@@ -556,7 +558,7 @@ imageUploadContainer: {
     marginBottom: 5,
   },
   uploadText: {
-    color: '#8B4513',
+    color: '#6A89A7',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -568,7 +570,7 @@ imageUploadContainer: {
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4C2A1',
+    backgroundColor: '#BDDDFC',
     borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -586,13 +588,13 @@ imageUploadContainer: {
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#8B4513',
+    color: '#384959',
     fontWeight: '500',
   },
   phoneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4C2A1',
+    backgroundColor: '#BDDDFC',
     borderRadius: 15,
     paddingLeft: 15,
     borderWidth: 2,
@@ -613,12 +615,12 @@ imageUploadContainer: {
     paddingVertical: 0,
   },
   phoneTextInput: {
-    color: '#8B4513',
+    color: '#384959',
     fontWeight: '500',
     fontSize: 16,
   },
   codeText: {
-    color: '#8B4513',
+    color: '#384959',
     fontWeight: '500',
   },
   flagButton: {
@@ -645,12 +647,12 @@ imageUploadContainer: {
   },
    inputLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#6A89A7',
     marginBottom: 8,
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#6A89A7',
     paddingVertical: 16,
     borderRadius: 15,
     alignItems: 'center',
@@ -689,12 +691,12 @@ imageUploadContainer: {
     flexWrap: 'wrap',
   },
   footerText: {
-    color: '#FFFFFF',
+    color: '#6A89A7',
     fontSize: 14,
     opacity: 0.9,
   },
   footerLink: {
-    color: '#FFFFFF',
+    color: '#6A89A7',
     fontWeight: 'bold',
     fontSize: 14,
     textDecorationLine: 'underline',

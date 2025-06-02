@@ -38,7 +38,7 @@ const CommandeScreen = () => {
   const navigation = useNavigation();
   
   // API base URL - make sure to use your correct IP address
-  const API_BASE_URL = 'http://192.168.0.132:8000';
+  const API_BASE_URL = 'http://192.168.0.188:8002';
   
   // Address form data state
   const [addressData, setAddressData] = useState({
@@ -312,12 +312,12 @@ const CommandeScreen = () => {
         </View>
         
         <View style={tw`flex-1 justify-center items-center p-6`}>
-          <View style={tw`bg-purple-100 p-4 rounded-full mb-6`}>
+          <View style={tw`bg-blue-100 p-4 rounded-full mb-6`}>
             <Ionicons name="cart-outline" size={64} color="#8B5CF6" />
           </View>
           <Text style={tw`text-xl text-gray-600 mb-6`}>Votre panier est vide</Text>
           <TouchableOpacity 
-            style={tw`bg-purple-600 px-8 py-3.5 rounded-xl`}
+            style={tw`bg-blue-600 px-8 py-3.5 rounded-xl`}
             onPress={() => navigation.navigate('Boutique')}
           >
             <Text style={tw`text-white font-bold text-lg`}>Découvrir nos produits</Text>
@@ -350,11 +350,11 @@ const CommandeScreen = () => {
           </View>
           <Text style={tw`text-xl font-bold text-gray-800 mb-2`}>Commande réussie!</Text>
           <Text style={tw`text-gray-600 text-center mb-6`}>
-            Votre commande numéro <Text style={tw`font-bold text-purple-600`}>{orderNumber}</Text> a été enregistrée.
+            Votre commande numéro <Text style={tw`font-bold text-blue-600`}>{orderNumber}</Text> a été enregistrée.
           </Text>
           <View style={tw`flex-row`}>
             <TouchableOpacity 
-              style={tw`bg-purple-600 px-6 py-3 rounded-xl mr-4`}
+              style={tw`bg-blue-600 px-6 py-3 rounded-xl mr-4`}
               onPress={() => navigation.navigate('Boutique')}
             >
               <Text style={tw`text-white font-bold`}>Continuer les achats</Text>
@@ -402,7 +402,7 @@ const CommandeScreen = () => {
           <View style={tw`mb-4`}>
             <Text style={tw`text-gray-600 mb-1`}>Nom</Text>
             <TextInput
-              style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+              style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
               value={addressData.nom}
               onChangeText={(text) => handleInputChange('nom', text)}
               placeholder="Votre nom"
@@ -412,7 +412,7 @@ const CommandeScreen = () => {
           <View style={tw`mb-4`}>
             <Text style={tw`text-gray-600 mb-1`}>Prénom</Text>
             <TextInput
-              style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+              style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
               value={addressData.prenom}
               onChangeText={(text) => handleInputChange('prenom', text)}
               placeholder="Votre prénom"
@@ -422,7 +422,7 @@ const CommandeScreen = () => {
           <View style={tw`mb-4`}>
             <Text style={tw`text-gray-600 mb-1`}>Adresse</Text>
             <TextInput
-              style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+              style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
               value={addressData.adresse}
               onChangeText={(text) => handleInputChange('adresse', text)}
               placeholder="Votre adresse complète"
@@ -433,7 +433,7 @@ const CommandeScreen = () => {
             <View style={tw`flex-1 mr-2`}>
               <Text style={tw`text-gray-600 mb-1`}>Code Postal</Text>
               <TextInput
-                style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+                style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
                 value={addressData.code_postal}
                 onChangeText={(text) => handleInputChange('code_postal', text)}
                 placeholder="Code postal"
@@ -443,7 +443,7 @@ const CommandeScreen = () => {
             <View style={tw`flex-1 ml-2`}>
               <Text style={tw`text-gray-600 mb-1`}>Ville</Text>
               <TextInput
-                style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+                style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
                 value={addressData.ville}
                 onChangeText={(text) => handleInputChange('ville', text)}
                 placeholder="Votre ville"
@@ -454,7 +454,7 @@ const CommandeScreen = () => {
           <View style={tw`mb-4`}>
             <Text style={tw`text-gray-600 mb-1`}>Téléphone</Text>
             <TextInput
-              style={tw`border-2 border-purple-100 rounded-xl px-4 py-2`}
+              style={tw`border-2 border-blue-100 rounded-xl px-4 py-2`}
               value={addressData.telephone}
               onChangeText={(text) => handleInputChange('telephone', text)}
               placeholder="Numéro de téléphone"
@@ -465,14 +465,14 @@ const CommandeScreen = () => {
         
         {/* Payment Method */}
         <View style={tw`bg-white rounded-xl shadow mb-6 p-4`}>
-          <Text style={tw`text-lg font-bold mb-4`}>Méthode de paiement</Text>
+          <Text style={[tw`text-lg font-bold mb-4`]}>Méthode de paiement</Text>
           
-          <View style={tw`flex-row items-center p-3 border-2 border-purple-100 rounded-xl bg-purple-50`}>
-            <View style={tw`bg-purple-100 p-2 rounded-full mr-4`}>
-              <Ionicons name="cash-outline" size={24} color="#8B5CF6" />
+          <View style={tw`flex-row items-center p-3 border-2 border-blue-100 rounded-xl bg-blue-50`}>
+            <View style={tw`bg-blue-100 p-2 rounded-full mr-4`}>
+              <Ionicons name="cash-outline" size={24} color="black" />
             </View>
             <View>
-              <Text style={tw`font-bold`}>Paiement à la livraison</Text>
+              <Text style={[tw`font-bold`]}>Paiement à la livraison</Text>
               <Text style={tw`text-gray-600 text-sm`}>Espèces ou carte à la réception</Text>
             </View>
           </View>
@@ -538,7 +538,7 @@ const CommandeScreen = () => {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <Text style={tw`font-bold text-purple-600`}>
+                <Text style={tw`font-bold text-blue-600`}>
                   {(item.prix * item.quantity).toFixed(2)} DT
                 </Text>
               </View>
@@ -549,7 +549,7 @@ const CommandeScreen = () => {
 
             <View style={tw`flex-row justify-between mt-4 pt-4 border-t border-gray-200`}>
               <Text style={tw`text-lg font-bold`}>Total</Text>
-              <Text style={tw`text-lg font-bold text-purple-600`}>{getFinalTotal()} DT</Text>
+              <Text style={tw`text-lg font-bold text-blue-600`}>{getFinalTotal()} DT</Text>
             </View>
           
         </View>
@@ -558,14 +558,18 @@ const CommandeScreen = () => {
       {/* Floating Action Button */}
       <View style={tw`absolute bottom-0 left-0 right-0 bg-white px-4 py-6 border-t border-gray-200 shadow-lg`}>
         <TouchableOpacity
-          style={tw`bg-purple-600 py-4 rounded-xl flex-row justify-center items-center ${processingOrder ? 'opacity-70' : ''}`}
+           style={[
+    tw`py-4 rounded-xl flex-row justify-center items-center`,
+    { backgroundColor: COLORS.primary, opacity: processingOrder ? 0.7 : 1 }
+  ]}
           onPress={handleSubmitOrder}
           disabled={processingOrder}
         >
           {processingOrder ? (
             <>
               <ActivityIndicator size="small" color="#ffffff" style={tw`mr-2`} />
-              <Text style={tw`text-white font-bold text-lg`}>Traitement en cours...</Text>
+              <Text style={tw`text-white font-bold text-lg`}
+              >Traitement en cours...</Text>
             </>
           ) : (
             <Text style={tw`text-white font-bold text-lg`}>Confirmer la commande</Text>

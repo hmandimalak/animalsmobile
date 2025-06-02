@@ -385,7 +385,7 @@ class UserAcceptedDefinitiveAnimalsView(generics.ListAPIView):
         user = self.request.user
         return Animal.objects.filter(
             garderie__utilisateur=user,
-            garderie__type_garde='Définitive'
+            type_garde='Définitive'
         ).distinct()
 class UserAcceptedAdoptionAnimalsView(generics.ListAPIView):
     serializer_class = AnimalSerializer

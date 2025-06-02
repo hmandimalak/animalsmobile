@@ -44,7 +44,7 @@ const PanierScreen = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  const API_BASE_URL = 'http://192.168.0.132:8000';
+  const API_BASE_URL = 'http://192.168.0.188:8002';
 
   // Fetch cart items
   const fetchCartItems = async () => {

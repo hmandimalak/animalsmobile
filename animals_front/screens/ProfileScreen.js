@@ -29,7 +29,7 @@ const colors = {
   cardBackground: '#FFFFFF',
 };
 
-const API_BASE_URL = 'http://192.168.0.132:8000/api';
+const API_BASE_URL = 'http://192.168.0.188:8002/api';
 
 // Centralized API service
 const api = {

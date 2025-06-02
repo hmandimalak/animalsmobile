@@ -24,6 +24,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
+const COLORS = {
+  primary: '#6A89A7',    // Soft blue (main color)
+  secondary: '#BDDDFC',   // Light sky blue
+  accent: '#88BDF2',      // Sky blue
+  dark: '#384959',        // Dark blue-gray
+  white: '#FFFFFF',
+  gray: '#F0F0F0',
+  darkGray: '#718096',    // Lighter blue-gray
+  lightGray: '#e6e6e6',
+  danger: '#ff6b6b',
+  gradientStart: '#6A89A7',
+  gradientEnd: '#88BDF2',
+};
+
 export default function EvenementMarcheDetail () {
   const [evenement, setEvenement] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +82,7 @@ export default function EvenementMarcheDetail () {
       const token = await AsyncStorage.getItem('access_token');
       
       // Fetch event details without authentication
-      const response = await fetch(`http://192.168.0.132:8000/api/animals/evenements/marche-chiens/${id}/`);
+      const response = await fetch(`http://192.168.0.188:8002/api/animals/evenements/marche-chiens/${id}/`);
 
       if (!response.ok) throw new Error(`Échec du chargement: ${response.status}`);
       
@@ -80,7 +94,7 @@ export default function EvenementMarcheDetail () {
       if (Array.isArray(dogIds) && dogIds.length > 0) {
         const dogDetails = await Promise.all(
           dogIds.map(dogId => 
-            fetch(`http://192.168.0.132:8000/api/animals/${dogId}/`)
+            fetch(`http://192.168.0.188:8002/api/animals/${dogId}/`)
             .then(res => res.ok ? res.json() : null)
           )
         );
@@ -90,7 +104,7 @@ export default function EvenementMarcheDetail () {
       // Only fetch user-specific data if authenticated
       if (token) {
         try {
-          const userResponse = await authenticatedFetch(`http://192.168.0.132:8000/api/animals/evenements/marche-chiens/${id}/user-demandes/`);
+          const userResponse = await authenticatedFetch(`http://192.168.0.188:8002/api/animals/evenements/marche-chiens/${id}/user-demandes/`);
           
           if (userResponse.ok) {
             const userData = await userResponse.json();
@@ -120,7 +134,7 @@ export default function EvenementMarcheDetail () {
   const fetchAnimalDetails = async (dog) => {
     if (!dog?.id) return;
     try {
-      const response = await fetch(`http://192.168.0.132:8000/api/animals/${dog.id}/`);
+      const response = await fetch(`http://192.168.0.188:8002/api/animals/${dog.id}/`);
       const data = await response.json();
       setSelectedDog(data);
       setIsModalOpen(true);
@@ -131,7 +145,6 @@ export default function EvenementMarcheDetail () {
 
   const submitRequest = async () => {
     if (!isAuthenticated) {
-      // Save the current page to redirect back after login
       await AsyncStorage.setItem('redirectAfterLogin', JSON.stringify({
         screen: 'EvenementMarcheDetail',
         params: { id: eventId }
@@ -142,7 +155,7 @@ export default function EvenementMarcheDetail () {
     
     try {
       setSubmitting(true);
-      const response = await authenticatedFetch('http://192.168.0.132:8000/api/animals/demandes/marche-chiens/', {
+      const response = await authenticatedFetch('http://192.168.0.188:8002/api/animals/demandes/marche-chiens/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +192,6 @@ export default function EvenementMarcheDetail () {
   const toggleDogSelection = (dog) => {
     if (!dog?.id || userDemandes[dog.id]) return;
     
-    // If not authenticated, redirect to login when trying to select a dog
     if (!isAuthenticated) {
       AsyncStorage.setItem('redirectAfterLogin', JSON.stringify({
         screen: 'EvenementMarcheDetail',
@@ -208,7 +220,7 @@ export default function EvenementMarcheDetail () {
     
     try {
       setSubmitting(true);
-      await authenticatedFetch(`http://192.168.0.132:8000/api/animals/demandes/marche-chiens/${userDemandes[dogId].demandeId}/`, {
+      await authenticatedFetch(`http://192.168.0.188:8002/api/animals/demandes/marche-chiens/${userDemandes[dogId].demandeId}/`, {
         method: 'DELETE',
       });
       await fetchEventDetails(eventId);
@@ -222,20 +234,19 @@ export default function EvenementMarcheDetail () {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'Acceptee': { bgColor: 'bg-green-100', textColor: 'text-green-800', borderColor: 'border-green-200', text: 'Accepté', style: styles.statusAccepted },
-      'Refusee': { bgColor: 'bg-red-100', textColor: 'text-red-800', borderColor: 'border-red-200', text: 'Refusé', style: styles.statusRejected },
-      default: { bgColor: 'bg-yellow-100', textColor: 'text-yellow-800', borderColor: 'border-yellow-200', text: 'En attente', style: styles.statusPending }
+      'Acceptee': { bgColor: COLORS.secondary, textColor: COLORS.dark, borderColor: COLORS.primary, text: 'Accepté', style: styles.statusAccepted },
+      'Refusee': { bgColor: COLORS.danger + '20', textColor: COLORS.danger, borderColor: COLORS.danger, text: 'Refusé', style: styles.statusRejected },
+      default: { bgColor: COLORS.accent + '20', textColor: COLORS.dark, borderColor: COLORS.accent, text: 'En attente', style: styles.statusPending }
     };
     return statusConfig[status] || statusConfig.default;
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#8B5CF6" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       
-      {/* Custom Header */}
       <LinearGradient
-        colors={['#8B5CF6', '#7C3AED']}
+        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.header}
@@ -244,22 +255,20 @@ export default function EvenementMarcheDetail () {
           onPress={() => navigation.navigate('Marche')}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#ffffff" />
+          <Ionicons name="chevron-back" size={24} color={COLORS.white} />
           <Text style={styles.backButtonText}>Retour aux événements</Text>
         </TouchableOpacity>
       </LinearGradient>
       
-      {/* Error Message */}
       {error && (
         <View style={styles.errorContainer}>
           <View style={styles.errorContent}>
-            <Ionicons name="alert-circle" size={20} color="#EF4444" />
+            <Ionicons name="alert-circle" size={20} color={COLORS.danger} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         </View>
       )}
       
-      {/* Success Message */}
       {success && (
         <View style={styles.successContainer}>
           <View style={styles.successContent}>
@@ -271,16 +280,15 @@ export default function EvenementMarcheDetail () {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Chargement de l'événement...</Text>
         </View>
       ) : evenement ? (
         <ScrollView style={styles.scrollView}>
           <View style={styles.contentContainer}>
-            {/* Event Card */}
             <View style={styles.eventCard}>
               <LinearGradient
-                colors={['#8B5CF6', '#D946EF']}
+                colors={[COLORS.primary, COLORS.accent]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.eventCardHeader}
@@ -290,15 +298,15 @@ export default function EvenementMarcheDetail () {
                 
                 <View style={styles.eventMetaContainer}>
                   <View style={styles.eventMetaBadge}>
-                    <FontAwesome5 name="calendar-alt" size={16} color="#9D6FDE" />
+                    <FontAwesome5 name="calendar-alt" size={16} color={COLORS.dark} />
                     <Text style={styles.eventMetaText}>{formatDate(evenement.date)}</Text>
                   </View>
                   <View style={styles.eventMetaBadge}>
-                    <Ionicons name="time-outline" size={16} color="#9D6FDE" />
+                    <Ionicons name="time-outline" size={16} color={COLORS.dark} />
                     <Text style={styles.eventMetaText}>{evenement.heure?.substring(0, 5)}</Text>
                   </View>
                   <View style={styles.eventMetaBadge}>
-                    <Ionicons name="location-outline" size={16} color="#9D6FDE" />
+                    <Ionicons name="location-outline" size={16} color={COLORS.dark} />
                     <Text style={styles.eventMetaText}>{evenement.lieu}</Text>
                   </View>
                 </View>
@@ -308,7 +316,7 @@ export default function EvenementMarcheDetail () {
                     <View style={styles.dividerContainer}>
                       <View style={styles.divider} />
                       <View style={styles.dividerIcon}>
-                        <MaterialCommunityIcons name="paw" size={24} color="#D946EF" />
+                        <MaterialCommunityIcons name="paw" size={24} color={COLORS.dark} />
                       </View>
                     </View>
                     <Text style={styles.eventDescription}>{evenement.description}</Text>
@@ -317,7 +325,6 @@ export default function EvenementMarcheDetail () {
               </View>
             </View>
 
-            {/* Dogs List */}
             <View style={styles.dogsCard}>
               <View style={styles.dogsCardHeader}>
                 <View style={styles.dogsCardHeaderContent}>
@@ -335,7 +342,7 @@ export default function EvenementMarcheDetail () {
               {filteredDogs.length === 0 ? (
                 <View style={styles.emptyDogsContainer}>
                   <View style={styles.emptyDogsIcon}>
-                    <MaterialCommunityIcons name="paw" size={32} color="#9CA3AF" />
+                    <MaterialCommunityIcons name="paw" size={32} color={COLORS.darkGray} />
                   </View>
                   <Text style={styles.emptyDogsTitle}>Aucun chien disponible</Text>
                   <Text style={styles.emptyDogsText}>Aucun chien n'a été ajouté à cet événement pour le moment.</Text>
@@ -354,7 +361,7 @@ export default function EvenementMarcheDetail () {
                       activeOpacity={userDemandes[dog.id] ? 1 : 0.7}
                     >
                       <LinearGradient
-                        colors={['#C4B5FD', '#F5D0FE']}
+                        colors={[COLORS.accent, COLORS.secondary]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.dogCardTopBar}
@@ -364,7 +371,7 @@ export default function EvenementMarcheDetail () {
                           <View style={styles.dogImage}>
                             {dog.image ? (
                               <Image
-                                source={{ uri: `http://192.168.0.132:8000${dog.image}` }}
+                                source={{ uri: `http://192.168.0.188:8002${dog.image}` }}
                                 style={styles.dogImageContent}
                                 resizeMode="cover"
                               />
@@ -402,7 +409,7 @@ export default function EvenementMarcheDetail () {
                         )}
                         
                         <View style={styles.dogEnergyInfo}>
-                          <MaterialCommunityIcons name="paw" size={14} color="#9CA3AF" />
+                          <MaterialCommunityIcons name="paw" size={14} color={COLORS.darkGray} />
                           <Text style={styles.dogEnergyText}>
                             {dog.niveau_energie || 'Énergie modérée'}
                           </Text>
@@ -410,7 +417,7 @@ export default function EvenementMarcheDetail () {
                           {selectedDogs.includes(dog.id) && (
                             <View style={styles.dogSelectedIcon}>
                               <View style={styles.selectedIconCircle}>
-                                <Ionicons name="heart" size={16} color="#FFFFFF" />
+                                <Ionicons name="heart" size={16} color={COLORS.white} />
                               </View>
                             </View>
                           )}
@@ -427,13 +434,13 @@ export default function EvenementMarcheDetail () {
         <View style={styles.notFoundContainer}>
           <View style={styles.notFoundCard}>
             <View style={styles.notFoundIconContainer}>
-              <Ionicons name="close" size={32} color="#EF4444" />
+              <Ionicons name="close" size={32} color={COLORS.danger} />
             </View>
             <Text style={styles.notFoundTitle}>Événement non trouvé</Text>
             <Text style={styles.notFoundText}>Cet événement n'existe pas ou a été supprimé.</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Marche')}
-              style={styles.notFoundButton}
+              style={[styles.notFoundButton, { backgroundColor: COLORS.primary }]} 
             >
               <Text style={styles.notFoundButtonText}>Retour à la liste des événements</Text>
             </TouchableOpacity>
@@ -441,7 +448,6 @@ export default function EvenementMarcheDetail () {
         </View>
       )}
 
-      {/* Dog Details Modal */}
       <Modal
         visible={isModalOpen}
         transparent={true}
@@ -450,12 +456,7 @@ export default function EvenementMarcheDetail () {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <LinearGradient
-              colors={['#8B5CF6', '#D946EF']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.modalHeader}
-            />
+            <View style={[styles.modalHeader, { backgroundColor: COLORS.primary }]} />
             <View style={styles.modalBody}>
               <Text style={styles.modalTitle}>
                 {selectedDog?.nom}
@@ -465,7 +466,7 @@ export default function EvenementMarcheDetail () {
                 <View style={styles.modalDogImageContainer}>
                   {selectedDog?.image ? (
                     <Image
-                      source={{ uri: `http://192.168.0.132:8000${selectedDog.image}` }}
+                      source={{ uri: `http://192.168.0.188:8002${selectedDog.image}` }}
                       style={styles.modalDogImage}
                       resizeMode="cover"
                     />
@@ -512,7 +513,7 @@ export default function EvenementMarcheDetail () {
                   >
                     {submitting ? 
                       <View style={styles.submittingContent}>
-                        <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
+                        <ActivityIndicator size="small" color={COLORS.white} style={{ marginRight: 10 }} />
                         <Text style={styles.buttonText}>Annulation...</Text>
                       </View> : 
                       <Text style={styles.buttonText}>Annuler la demande</Text>
@@ -547,7 +548,7 @@ export default function EvenementMarcheDetail () {
                         : 'Sélectionner pour la marche'}
                   </Text>
                   {!selectedDogs.includes(selectedDog?.id) && (
-                    <MaterialCommunityIcons name="paw" size={16} color="#FFFFFF" />
+                    <MaterialCommunityIcons name="paw" size={16} color={COLORS.white} />
                   )}
                 </TouchableOpacity>
               )}
@@ -563,7 +564,6 @@ export default function EvenementMarcheDetail () {
         </View>
       </Modal>
 
-      {/* Floating Action Button */}
       {selectedDogs.length > 0 && (
         <View style={styles.fabContainer}>
           <TouchableOpacity
@@ -573,7 +573,7 @@ export default function EvenementMarcheDetail () {
           >
             {submitting ? (
               <View style={styles.submittingContent}>
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 10 }} />
+                <ActivityIndicator size="small" color={COLORS.white} style={{ marginRight: 10 }} />
                 <Text style={styles.fabText}>Envoi en cours...</Text>
               </View>
             ) : (
@@ -589,12 +589,12 @@ export default function EvenementMarcheDetail () {
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: COLORS.secondary,
   },
   header: {
     paddingTop: 50,
@@ -607,15 +607,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: COLORS.danger + '20',
     borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+    borderLeftColor: COLORS.danger,
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 16,
@@ -625,11 +625,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   errorText: {
-    color: '#B91C1C',
+    color: COLORS.danger,
     marginLeft: 8,
   },
   successContainer: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#D1FAE5',
     borderLeftWidth: 4,
     borderLeftColor: '#10B981',
     marginHorizontal: 16,
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    color: '#8B5CF6',
+    color: COLORS.primary,
     fontWeight: '500',
   },
   scrollView: {
@@ -662,12 +662,12 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   eventCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     overflow: 'hidden',
     elevation: 4,
     marginBottom: 24,
-    shadowColor: '#7C3AED',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: COLORS.primary,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
   eventMetaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EDE9FE',
+    backgroundColor: COLORS.lightGray,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 24,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   eventMetaText: {
     fontWeight: '500',
     marginLeft: 8,
-    color: '#6D28D9',
+    color: COLORS.dark,
   },
   eventDescriptionContainer: {
     alignItems: 'center',
@@ -719,26 +719,26 @@ const styles = StyleSheet.create({
     right: 0,
     top: '50%',
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.lightGray,
   },
   dividerIcon: {
     position: 'relative',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     alignItems: 'center',
   },
   eventDescription: {
-    color: '#6B7280',
+    color: COLORS.darkGray,
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 22,
   },
   dogsCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     overflow: 'hidden',
     elevation: 4,
-    shadowColor: '#7C3AED',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   dogsCardHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: COLORS.lightGray,
   },
   dogsCardHeaderContent: {
     flexDirection: 'row',
@@ -756,10 +756,10 @@ const styles = StyleSheet.create({
   dogsCardTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: COLORS.primary,
   },
   dogsCountBadge: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: COLORS.lightGray,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
@@ -767,8 +767,9 @@ const styles = StyleSheet.create({
   dogsCountText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: COLORS.primary,
   },
+
   emptyDogsContainer: {
     padding: 40,
     alignItems: 'center',
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: COLORS.lightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -785,11 +786,11 @@ const styles = StyleSheet.create({
   emptyDogsTitle: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#1F2937',
+    color: COLORS.dark,
     marginBottom: 8,
   },
   emptyDogsText: {
-    color: '#6B7280',
+    color: COLORS.darkGray,
     textAlign: 'center',
   },
   dogsList: {
@@ -797,324 +798,326 @@ const styles = StyleSheet.create({
   },
   dogCard: {
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: COLORS.lightGray,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: COLORS.dark,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
   dogCardDeactivated: {
-  opacity: 0.7,
-},
-dogCardSelected: {
-  borderColor: '#8B5CF6',
-  borderWidth: 2,
-},
-dogCardTopBar: {
-  height: 4,
-},
-dogCardContent: {
-  padding: 16,
-},
-dogCardMainInfo: {
-  flexDirection: 'row',
-  marginBottom: 12,
-},
-dogImage: {
-  width: 80,
-  height: 80,
-  borderRadius: 12,
-  overflow: 'hidden',
-  marginRight: 16,
-},
-dogImageContent: {
-  width: '100%',
-  height: '100%',
-},
-dogImagePlaceholder: {
-  width: '100%',
-  height: '100%',
-  backgroundColor: '#EDE9FE',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-dogInfo: {
-  flex: 1,
-  justifyContent: 'center',
-},
-dogName: {
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#1F2937',
-  marginBottom: 4,
-},
-dogBreed: {
-  fontSize: 14,
-  color: '#6B7280',
-  marginBottom: 4,
-},
-dogMeta: {
-  fontSize: 12,
-  color: '#9CA3AF',
-},
-statusBadge: {
-  marginTop: 8,
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderRadius: 12,
-  alignSelf: 'flex-start',
-},
-statusAccepted: {
-  backgroundColor: '#DCFCE7',
-  borderColor: '#86EFAC',
-},
-statusRejected: {
-  backgroundColor: '#FEE2E2',
-  borderColor: '#FECACA',
-},
-statusPending: {
-  backgroundColor: '#FEF3C7',
-  borderColor: '#FDE68A',
-},
-statusText: {
-  fontSize: 12,
-  fontWeight: '500',
-},
-dogDescription: {
-  marginBottom: 12,
-},
-dogDescriptionText: {
-  fontSize: 13,
-  color: '#6B7280',
-  lineHeight: 18,
-},
-dogEnergyInfo: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-dogEnergyText: {
-  fontSize: 12,
-  color: '#9CA3AF',
-  marginLeft: 6,
-},
-dogSelectedIcon: {
-  flex: 1,
-  alignItems: 'flex-end',
-},
-selectedIconCircle: {
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  backgroundColor: '#D946EF',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-notFoundContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: 16,
-},
-notFoundCard: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 24,
-  padding: 32,
-  alignItems: 'center',
-  width: '100%',
-  elevation: 4,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-},
-notFoundIconContainer: {
-  width: 64,
-  height: 64,
-  borderRadius: 32,
-  backgroundColor: '#FEE2E2',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: 16,
-},
-notFoundTitle: {
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#1F2937',
-  marginBottom: 8,
-},
-notFoundText: {
-  color: '#6B7280',
-  textAlign: 'center',
-  marginBottom: 20,
-},
-notFoundButton: {
-  backgroundColor: '#8B5CF6',
-  paddingHorizontal: 20,
-  paddingVertical: 12,
-  borderRadius: 8,
-},
-notFoundButtonText: {
-  color: '#FFFFFF',
-  fontWeight: '500',
-},
-modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: 16,
-},
-modalContent: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 24,
-  width: '100%',
-  maxWidth: 480,
-  overflow: 'hidden',
-  elevation: 8,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 8,
-},
-modalHeader: {
-  height: 6,
-},
-modalBody: {
-  padding: 24,
-},
-modalTitle: {
-  fontSize: 22,
-  fontWeight: 'bold',
-  color: '#7C3AED',
-  textAlign: 'center',
-  marginBottom: 20,
-},
-modalDogDetails: {
-  marginBottom: 24,
-},
-modalDogImageContainer: {
-  width: 120,
-  height: 120,
-  borderRadius: 60,
-  overflow: 'hidden',
-  marginBottom: 20,
-  alignSelf: 'center',
-},
-modalDogImage: {
-  width: '100%',
-  height: '100%',
-},
-modalDogImagePlaceholder: {
-  width: '100%',
-  height: '100%',
-  backgroundColor: '#EDE9FE',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-modalDogInfoRow: {
-  flexDirection: 'row',
-  marginBottom: 16,
-},
-modalDogInfoItem: {
-  flex: 1,
-},
-modalDogInfoFull: {
-  marginBottom: 16,
-},
-modalDogInfoLabel: {
-  fontSize: 12,
-  color: '#9CA3AF',
-  marginBottom: 4,
-},
-modalDogInfoValue: {
-  fontSize: 16,
-  color: '#1F2937',
-  fontWeight: '500',
-},
-modalDogInfoDescription: {
-  fontSize: 14,
-  color: '#4B5563',
-  lineHeight: 20,
-},
-selectDogButton: {
-  backgroundColor: '#8B5CF6',
-  borderRadius: 12,
-  paddingVertical: 14,
-  alignItems: 'center',
-  flexDirection: 'row',
-  justifyContent: 'center',
-  gap: 8,
-},
-deselectDogButton: {
-  backgroundColor: '#9CA3AF',
-},
-cancelRequestButton: {
-  backgroundColor: '#EF4444',
-  borderRadius: 12,
-  paddingVertical: 14,
-  alignItems: 'center',
-},
-buttonText: {
-  color: '#FFFFFF',
-  fontWeight: 'bold',
-  fontSize: 16,
-},
-submittingContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-modalCloseButton: {
-  alignItems: 'center',
-  padding: 16,
-  borderTopWidth: 1,
-  borderTopColor: '#F3F4F6',
-},
-modalCloseButtonText: {
-  color: '#6B7280',
-  fontWeight: '500',
-},
-fabContainer: {
-  position: 'absolute',
-  bottom: 24,
-  left: 0,
-  right: 0,
-  alignItems: 'center',
-},
-fab: {
-  backgroundColor: '#7C3AED',
-  borderRadius: 30,
-  paddingVertical: 16,
-  paddingHorizontal: 24,
-  flexDirection: 'row',
-  alignItems: 'center',
-  elevation: 6,
-  shadowColor: '#7C3AED',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.3,
-  shadowRadius: 5,
-},
-fabText: {
-  color: '#FFFFFF',
-  fontWeight: 'bold',
-  fontSize: 16,
-},
-fabBadge: {
-  backgroundColor: '#D946EF',
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginLeft: 12,
-},
-fabBadgeText: {
-  color: '#FFFFFF',
-  fontWeight: 'bold',
-  fontSize: 12,
-}})
+    opacity: 0.7,
+  },
+  dogCardSelected: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  dogCardTopBar: {
+    height: 4,
+    backgroundColor: COLORS.accent,
+  },
+  dogCardContent: {
+    padding: 16,
+  },
+  dogCardMainInfo: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  dogImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 16,
+  },
+  dogImageContent: {
+    width: '100%',
+    height: '100%',
+  },
+  dogImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: COLORS.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dogInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  dogName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.dark,
+    marginBottom: 4,
+  },
+  dogBreed: {
+    fontSize: 14,
+    color: COLORS.darkGray,
+    marginBottom: 4,
+  },
+  dogMeta: {
+    fontSize: 12,
+    color: COLORS.gray,
+  },
+  statusBadge: {
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  statusAccepted: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
+  statusRejected: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FECACA',
+  },
+  statusPending: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FDE68A',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  dogDescription: {
+    marginBottom: 12,
+  },
+  dogDescriptionText: {
+    fontSize: 13,
+    color: COLORS.darkGray,
+    lineHeight: 18,
+  },
+  dogEnergyInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dogEnergyText: {
+    fontSize: 12,
+    color: COLORS.darkGray,
+    marginLeft: 6,
+  },
+  dogSelectedIcon: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  selectedIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  notFoundCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    elevation: 4,
+    shadowColor: COLORS.dark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  notFoundIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.danger + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  notFoundTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.dark,
+    marginBottom: 8,
+  },
+  notFoundText: {
+    color: COLORS.darkGray,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  notFoundButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  notFoundButtonText: {
+    color: COLORS.white,
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    width: '100%',
+    maxWidth: 480,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: COLORS.dark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    height: 6,
+  },
+  modalBody: {
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalDogDetails: {
+    marginBottom: 24,
+  },
+  modalDogImageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  modalDogImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalDogImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: COLORS.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalDogInfoRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  modalDogInfoItem: {
+    flex: 1,
+  },
+  modalDogInfoFull: {
+    marginBottom: 16,
+  },
+  modalDogInfoLabel: {
+    fontSize: 12,
+    color: COLORS.darkGray,
+    marginBottom: 4,
+  },
+  modalDogInfoValue: {
+    fontSize: 16,
+    color: COLORS.dark,
+    fontWeight: '500',
+  },
+  modalDogInfoDescription: {
+    fontSize: 14,
+    color: COLORS.darkGray,
+    lineHeight: 20,
+  },
+  selectDogButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  deselectDogButton: {
+    backgroundColor: COLORS.darkGray,
+  },
+  cancelRequestButton: {
+    backgroundColor: COLORS.danger,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  submittingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  modalCloseButtonText: {
+    color: COLORS.darkGray,
+    fontWeight: '500',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  fab: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 30,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  fabText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  fabBadge: {
+    backgroundColor: COLORS.accent,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  fabBadgeText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 12,
+  }
+});

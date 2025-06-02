@@ -118,7 +118,7 @@ export default function AdoptionsScreen({ navigation }) {
         <Image
           source={
             item.image
-              ? { uri: `http://192.168.0.132:8000${item.image}` }
+              ? { uri: `http://192.168.0.188:8002${item.image}` }
               : require('../assets/dogandcat.jpeg')
           }
           style={{ 
@@ -162,7 +162,7 @@ export default function AdoptionsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#8A2BE2', '#4B0082']}
+        colors={['#6A89A7', '#6A89A7']}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
         style={styles.header}
@@ -217,7 +217,7 @@ export default function AdoptionsScreen({ navigation }) {
                 <Image
                   source={
                     selectedAnimal.image
-                      ? { uri: `http://192.168.0.132:8000${selectedAnimal.image}` }
+                      ? { uri: `http://192.168.0.188:8002${selectedAnimal.image}` }
                       : require('../assets/dogandcat.jpeg')
                   }
                   style={styles.modalImage}
@@ -241,19 +241,19 @@ export default function AdoptionsScreen({ navigation }) {
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="paw" size={18} color="#C5A8FF" />
+                  <Ionicons name="paw" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>{selectedAnimal.race}</Text>
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="transgender" size={18} color="#C5A8FF" />
+                  <Ionicons name="transgender" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>
                     {selectedAnimal.sexe === 'M' ? 'Mâle' : 'Femelle'}
                   </Text>
                 </View>
                 
                 <View style={styles.infoRow}>
-                  <Ionicons name="calendar" size={18} color="#C5A8FF" />
+                  <Ionicons name="calendar" size={18} color="#BDDDFC" />
                   <Text style={styles.modalText}>
                     {formatAge(selectedAnimal.date_naissance)}
                   </Text>
